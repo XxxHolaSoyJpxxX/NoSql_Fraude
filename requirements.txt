@@ -1,0 +1,6 @@
+cassandra-driver
+time_uuid
+fastapi[all]
+pydantic
+pymongo
+requests
