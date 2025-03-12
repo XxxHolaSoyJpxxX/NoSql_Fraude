@@ -16,7 +16,7 @@ log.addHandler(handler)
 
 # Read env vars releated to Cassandra App
 CLUSTER_IPS = os.getenv('CASSANDRA_CLUSTER_IPS', 'localhost')
-KEYSPACE = os.getenv('CASSANDRA_KEYSPACE', 'proyectoFraude')
+KEYSPACE = os.getenv('CASSANDRA_KEYSPACE', 'proyectofraude')
 REPLICATION_FACTOR = os.getenv('CASSANDRA_REPLICATION_FACTOR', '1')
 
 
@@ -63,18 +63,6 @@ def main():
     model.create_keyspace(session, KEYSPACE, REPLICATION_FACTOR)
     session.set_keyspace(KEYSPACE)
 
-    model.create_schema(session)
-
-    username = set_username()
-
-    while True:
-        print_menu()
-        option = input('Enter your choice: ').strip()
-
-        if not option.isdigit():
-            print("Invalid input. Please enter a number.")
-            continue
-        option = int(option)
 
 if __name__ == '__main__':
     main()
