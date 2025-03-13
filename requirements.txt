@@ -4,3 +4,7 @@ fastapi[all]
 pydantic
 pymongo
 requests
+falcon
+pymongo
+uvicorn
+requests
