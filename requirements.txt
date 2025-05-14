@@ -8,3 +8,4 @@ falcon
 pymongo
 uvicorn
 requests
+pydgraph
