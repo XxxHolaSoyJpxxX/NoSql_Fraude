@@ -17,27 +17,67 @@ def get_dgraph_client():
 def definir_schema():
     client = get_dgraph_client()
     schema = """
-    usuario_id: string @index(exact) .
-    account_id: string @index(exact) .
-    account_type: string .
-    balance: float .
-    currency: string .
-    status: string .
+   type User {
+    user_id
+    full_name
+    email
+    phone
+    registration_date
+    owns_accounts
+}
 
-    tiene_cuenta: [uid] .
+type Account {
+    account_id
+    account_type
+    balance
+    currency
+    status
+    spending_limit
+    owned_by
+    outgoing_transactions
+    incoming_transactions
+}
 
-    type Usuario {
-        usuario_id
-        tiene_cuenta
-    }
+type Transaccion {
+    transaction_id
+    source_location
+    destination_location
+    from_account
+    to_account
+    amount
+    timestamp
+    description
+    transaction_status
+}
+Usuarios
+user_id: string @index(exact) .
+full_name: string @index(term) .
+email: string @index(exact) .
+phone: string @index(exact) .
+registration_date: datetime .
+owns_accounts: [uid] @reverse .
 
-    type Cuenta {
-        account_id
-        account_type
-        balance
-        currency
-        status
-    }
+Cuentas
+account_id: string @index(exact) .
+account_type: string @index(term) .
+balance: float .
+currency: string .
+status: string @index(term) .
+spending_limit: float .
+owned_by: uid @reverse .
+outgoing_transactions: [uid] @reverse .
+incoming_transactions: [uid] @reverse .
+
+Transacciones
+transaction_id: string @index(exact) .
+source_location: geo .
+destination_location: geo .
+from_account: uid @reverse .
+to_account: uid @reverse .
+amount: float .
+timestamp: datetime .
+description: string .
+transaction_status: string @index(term) .  # e.g., completed, failed, pending
     """
     op = pydgraph.Operation(schema=schema)
     client.alter(op)
@@ -106,3 +146,5 @@ def obtener_cuentas_usuario(usuario_id):
     res = client.txn(read_only=True).query(query)
     data = json.loads(res.json)
     return data.get("cuentas", [])[0].get("tiene_cuenta", []) if data.get("cuentas") else []
+
+def 
