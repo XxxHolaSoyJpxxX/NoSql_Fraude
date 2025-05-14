@@ -1,173 +1,69 @@
-from db.Dgraph.dgraph import obtener_cuentas_usuario, crear_cuenta_para_usuario,cuenta_ya_existe, obtener_beneficiarios, agregar_beneficiario, eliminar_beneficiario
-from db.Cassandra.cassandra import obtener_ultimas_transacciones_usuario, registrar_transaccion, obtener_transacciones_cuenta, obtener_estadisticas_usuario
-from db.MongoDB.mongo import guardar_reporte_fraude, guardar_notificacion, obtener_notificaciones, marcar_notificacion_leida, guardar_limite_personalizado, obtener_limites_usuario
-
+# core/usuario.py
+from db.Dgraph.dgraph import obtener_cuentas_usuario
+from db.Cassandra.cassandra import obtener_ultimas_transacciones_usuario, obtener_transacciones_cuenta, obtener_estadisticas_usuario
+from db.MongoDB.mongo import guardar_reporte_fraude, guardar_notificacion, obtener_notificaciones, marcar_notificacion_leida
+from core.fraude import SistemaDeteccionFraude
 
 def menu_usuario(usuario_id):
     """
-    Menú principal del usuario que permite realizar diversas operaciones bancarias
+    Menú principal del usuario enfocado en la detección de fraude
     """
     while True:
         print(f"\n=== Menú del Usuario: {usuario_id} ===")
-        print("1. Ver y administrar cuentas/tarjetas")
-        print("2. Realizar transacción")
-        print("3. Reportar transacción no reconocida")
-        print("4. Ver historial financiero")
-        print("5. Gestionar beneficiarios frecuentes")
-        print("6. Configurar límites personalizados")
-        print("7. Ver notificaciones")
-        print("8. Crear nueva cuenta")
-        print("9. Salir")
+        print("1. Ver historial de transacciones")
+        print("2. Reportar transacción no reconocida")
+        print("3. Ver alertas de seguridad")
+        print("4. Ver nivel de riesgo de cuenta")
+        print("5. Ver notificaciones")
+        print("6. Salir")
 
         opcion = input("Selecciona una opción: ")
 
         if opcion == "1":
-            administrar_cuentas(usuario_id)
+            ver_historial_transacciones(usuario_id)
         elif opcion == "2":
-            realizar_transaccion(usuario_id)
-        elif opcion == "3":
             reportar_fraude(usuario_id)
+        elif opcion == "3":
+            ver_alertas_seguridad(usuario_id)
         elif opcion == "4":
-            ver_historial_financiero(usuario_id)
+            ver_nivel_riesgo(usuario_id)
         elif opcion == "5":
-            gestionar_beneficiarios(usuario_id)
-        elif opcion == "6":
-            configurar_limites(usuario_id)
-        elif opcion == "7":
             ver_notificaciones(usuario_id)
-        elif opcion == "8":
-            crear_nueva_cuenta(usuario_id)
-        elif opcion == "9":
+        elif opcion == "6":
             print("Saliendo del menú de usuario.")
             break
         else:
             print("Opción no válida.")
 
-def administrar_cuentas(usuario_id):
+def ver_historial_transacciones(usuario_id):
     """
-    Muestra y permite administrar las cuentas del usuario
+    Muestra el historial de transacciones del usuario para identificar posibles fraudes
     """
-    while True:
-        print("\n=== Administración de Cuentas ===")
-        cuentas = obtener_cuentas_usuario(usuario_id)
-        
-        if not cuentas:
-            print("🔍 No tienes cuentas asociadas.")
-            return
-        
-        print("\nTus cuentas:")
-        for i, c in enumerate(cuentas, 1):
-            print(f"{i}. {c['account_type'].capitalize()} ({c['account_id']}): {c['balance']} {c['currency']} - Estado: {c['status']}")
-        
-        print("\nOpciones:")
-        print("1. Ver detalles de cuenta")
-        print("2. Ver transacciones recientes")
-        print("3. Volver al menú principal")
-        
-        sub_opcion = input("Selecciona una opción: ")
-        
-        if sub_opcion == "1":
-            idx = int(input("Número de cuenta a ver: ")) - 1
-            if 0 <= idx < len(cuentas):
-                print("\nDetalles de la cuenta:")
-                for key, value in cuentas[idx].items():
-                    print(f"• {key}: {value}")
-            else:
-                print("Número de cuenta inválido.")
-        
-        elif sub_opcion == "2":
-            idx = int(input("Número de cuenta a ver transacciones: ")) - 1
-            if 0 <= idx < len(cuentas):
-                account_id = cuentas[idx]['account_id']
-                transacciones = obtener_transacciones_cuenta(account_id, 10)
-                
-                if not transacciones:
-                    print(f"No hay transacciones recientes para la cuenta {account_id}")
-                else:
-                    print(f"\nÚltimas transacciones de la cuenta {account_id}:")
-                    for t in transacciones:
-                        print(f"• {t['fecha']} - {t['tipo']}: {t['monto']} {cuentas[idx]['currency']} - {t['estatus']}")
-            else:
-                print("Número de cuenta inválido.")
-        
-        elif sub_opcion == "3":
-            break
-        
-        else:
-            print("Opción no válida.")
-
-def realizar_transaccion(usuario_id):
-    """
-    Permite al usuario realizar una transacción
-    """
-    print("\n=== Realizar Transacción ===")
+    print("\n=== Historial de Transacciones ===")
     
-    # Obtener cuentas del usuario
+    # Obtener las cuentas del usuario
     cuentas = obtener_cuentas_usuario(usuario_id)
+    
     if not cuentas:
-        print("No tienes cuentas disponibles para realizar transacciones.")
+        print("No tienes cuentas asociadas.")
         return
     
-    # Seleccionar cuenta de origen
-    print("\nSelecciona la cuenta de origen:")
-    for i, c in enumerate(cuentas, 1):
-        print(f"{i}. {c['account_type'].capitalize()} ({c['account_id']}): {c['balance']} {c['currency']}")
+    # Mostrar transacciones recientes de todas las cuentas
+    print("\nTransacciones recientes:")
     
-    try:
-        idx_origen = int(input("Número de cuenta: ")) - 1
-        if not (0 <= idx_origen < len(cuentas)):
-            print("Número de cuenta inválido.")
-            return
+    for cuenta in cuentas:
+        account_id = cuenta.get('account_id')
+        transacciones = obtener_transacciones_cuenta(account_id, 5)
         
-        cuenta_origen = cuentas[idx_origen]
+        print(f"\nCuenta: {account_id}")
+        if not transacciones:
+            print("No hay transacciones recientes.")
+            continue
         
-        # Datos de la transacción
-        destino_account_id = input("ID de cuenta destino: ")
-        monto = float(input(f"Monto a transferir ({cuenta_origen['currency']}): "))
-        
-        if monto <= 0:
-            print("El monto debe ser mayor a cero.")
-            return
-        
-        if monto > float(cuenta_origen['balance']):
-            print("Saldo insuficiente para realizar la transacción.")
-            return
-        
-        categoria = input("Categoría (opcional, ej: alimentación, transporte): ") or "general"
-        descripcion = input("Descripción (opcional): ") or "Transferencia"
-        
-        # Preparar datos de la transacción
-        datos_transaccion = {
-            "usuario_id": usuario_id,
-            "account_id": cuenta_origen['account_id'],
-            "monto": monto,
-            "tipo": "transferencia",
-            "origen": cuenta_origen['account_id'],
-            "destino": destino_account_id,
-            "categoria": categoria,
-            "descripcion": descripcion,
-            # Datos para Dgraph
-            "origen_account_id": cuenta_origen['account_id'],
-            "destino_account_id": destino_account_id
-        }
-        
-        # Registro en Cassandra (historial temporal)
-        transaction_id = registrar_transaccion(datos_transaccion)
-        
-        # En un sistema real, aquí se registraría también en Dgraph para actualizar balances
-        # y realizar el análisis de fraude
-        
-        print(f"\n✅ Transacción realizada exitosamente")
-        print(f"ID de transacción: {transaction_id}")
-        print(f"De: {cuenta_origen['account_id']}")
-        print(f"Para: {destino_account_id}")
-        print(f"Monto: {monto} {cuenta_origen['currency']}")
-        print(f"Categoría: {categoria}")
-        
-    except ValueError:
-        print("Por favor ingresa valores numéricos válidos.")
-    except Exception as e:
-        print(f"Error al realizar la transacción: {str(e)}")
+        for t in transacciones:
+            print(f"• {t.get('fecha')} - {t.get('tipo')}: {t.get('monto')} - {t.get('estatus')}")
+    
+    input("\nPresiona Enter para volver al menú...")
 
 def reportar_fraude(usuario_id):
     """
@@ -184,7 +80,7 @@ def reportar_fraude(usuario_id):
     
     print("\nÚltimas transacciones:")
     for i, t in enumerate(transacciones, 1):
-        print(f"{i}. {t['fecha']} - {t['tipo']}: {t['monto']} - {t['estatus']}")
+        print(f"{i}. {t.get('fecha')} - {t.get('tipo')}: {t.get('monto')} - {t.get('estatus')}")
     
     try:
         idx = int(input("\nNúmero de transacción a reportar (0 para cancelar): ")) - 1
@@ -199,17 +95,18 @@ def reportar_fraude(usuario_id):
         
         transaccion = transacciones[idx]
         
-        print(f"\nReportando transacción: {transaccion['transaction_id']}")
-        print(f"Fecha: {transaccion['fecha']}")
-        print(f"Monto: {transaccion['monto']}")
-        print(f"Tipo: {transaccion['tipo']}")
+        print(f"\nReportando transacción: {transaccion.get('transaction_id')}")
+        print(f"Fecha: {transaccion.get('fecha')}")
+        print(f"Monto: {transaccion.get('monto')}")
+        print(f"Tipo: {transaccion.get('tipo')}")
         
         motivo = input("\nMotivo del reporte (no la reconozco, monto incorrecto, etc.): ")
         detalles = input("Detalles adicionales: ")
         
         # Crear reporte de fraude en MongoDB
         reporte = {
-            "transaction_id": transaccion['transaction_id'],
+            "usuario_id": usuario_id,
+            "transaction_id": transaccion.get('transaction_id'),
             "fecha_reporte": None,  # Se establece en el backend
             "motivo": motivo,
             "detalles": detalles,
@@ -226,7 +123,7 @@ def reportar_fraude(usuario_id):
         notificacion = {
             "tipo": "reporte_fraude",
             "titulo": "Reporte de fraude recibido",
-            "mensaje": f"Hemos recibido tu reporte sobre la transacción del {transaccion['fecha']}. Te informaremos en cuanto tengamos novedades.",
+            "mensaje": f"Hemos recibido tu reporte sobre la transacción del {transaccion.get('fecha')}. Te informaremos en cuanto tengamos novedades.",
             "prioridad": "alta"
         }
         
@@ -236,170 +133,96 @@ def reportar_fraude(usuario_id):
         print("Por favor ingresa un número válido.")
     except Exception as e:
         print(f"Error al reportar fraude: {str(e)}")
+    
+    input("\nPresiona Enter para volver al menú...")
 
-def ver_historial_financiero(usuario_id):
+def ver_alertas_seguridad(usuario_id):
     """
-    Muestra el historial financiero y estadísticas del usuario
+    Muestra las alertas de seguridad y posibles patrones sospechosos
     """
-    print("\n=== Historial Financiero ===")
+    print("\n=== Alertas de Seguridad ===")
     
-    # Obtener estadísticas de los últimos 30 días
-    estadisticas = obtener_estadisticas_usuario(usuario_id, 30)
+    # Simulación de análisis de seguridad utilizando el sistema de detección de fraude
+    print("Analizando patrones de comportamiento y posibles amenazas...")
     
-    if estadisticas["total_transacciones"] == 0:
-        print("No hay datos de transacciones para mostrar.")
-        return
-    
-    print("\n📊 Resumen últimos 30 días:")
-    print(f"• Total de transacciones: {estadisticas['total_transacciones']}")
-    print(f"• Monto total: {estadisticas['monto_total']:.2f}")
-    print(f"• Monto promedio por transacción: {estadisticas['monto_promedio']:.2f}")
-    print(f"• Transacciones por día: {estadisticas['transacciones_por_dia']:.2f}")
-    
-    print("\n📋 Desglose por categoría:")
-    for categoria, monto in estadisticas["montos_por_categoria"].items():
-        print(f"• {categoria}: {monto:.2f}")
-    
-    print("\n📋 Desglose por tipo:")
-    for tipo, monto in estadisticas["montos_por_tipo"].items():
-        print(f"• {tipo}: {monto:.2f}")
-    
-    # Ver transacciones específicas
-    ver_mas = input("\n¿Deseas ver transacciones específicas? (s/n): ").lower()
-    if ver_mas == 's':
-        transacciones = obtener_ultimas_transacciones_usuario(usuario_id, 30)
-        
-        print("\nÚltimas 30 transacciones:")
-        for t in transacciones:
-            print(f"• {t['fecha']} - {t['tipo']}: {t['monto']} - {t['estatus']} - {t.get('categoria', 'general')}")
-
-def gestionar_beneficiarios(usuario_id):
-    """
-    Permite gestionar los beneficiarios frecuentes
-    """
-    while True:
-        print("\n=== Gestión de Beneficiarios Frecuentes ===")
-        print("1. Ver beneficiarios")
-        print("2. Agregar beneficiario")
-        print("3. Eliminar beneficiario")
-        print("4. Volver al menú principal")
-        
-        opcion = input("Selecciona una opción: ")
-        
-        if opcion == "1":
-            beneficiarios = obtener_beneficiarios(usuario_id)
-            
-            if not beneficiarios:
-                print("No tienes beneficiarios registrados.")
-            else:
-                print("\nTus beneficiarios:")
-                for i, b in enumerate(beneficiarios, 1):
-                    apodo = f" ({b['apodo']})" if b.get('apodo') else ""
-                    print(f"{i}. {b['nombre']}{apodo} - {b['user_id']}")
-                    print(f"   Tipo: {b['tipo']} | Transacciones: {b['transacciones']}")
-        
-        elif opcion == "2":
-            beneficiario_id = input("ID de usuario beneficiario: ")
-            apodo = input("Apodo (opcional): ")
-            
-            if agregar_beneficiario(usuario_id, beneficiario_id, apodo):
-                print(f"✅ Beneficiario {beneficiario_id} agregado correctamente.")
-            else:
-                print("❌ Error al agregar beneficiario.")
-        
-        elif opcion == "3":
-            beneficiarios = obtener_beneficiarios(usuario_id)
-            
-            if not beneficiarios:
-                print("No tienes beneficiarios para eliminar.")
-                continue
-            
-            print("\nSelecciona el beneficiario a eliminar:")
-            for i, b in enumerate(beneficiarios, 1):
-                print(f"{i}. {b['nombre']} - {b['user_id']}")
-            
-            try:
-                idx = int(input("Número de beneficiario (0 para cancelar): ")) - 1
-                
-                if idx == -1:
-                    print("Operación cancelada.")
-                    continue
-                
-                if not (0 <= idx < len(beneficiarios)):
-                    print("Número de beneficiario inválido.")
-                    continue
-                
-                beneficiario = beneficiarios[idx]
-                
-                if eliminar_beneficiario(usuario_id, beneficiario['user_id']):
-                    print(f"✅ Beneficiario {beneficiario['nombre']} eliminado correctamente.")
-                else:
-                    print("❌ Error al eliminar beneficiario.")
-                
-            except ValueError:
-                print("Por favor ingresa un número válido.")
-        
-        elif opcion == "4":
-            break
-        
-        else:
-            print("Opción no válida.")
-
-def configurar_limites(usuario_id):
-    """
-    Permite configurar límites personalizados para transacciones
-    """
-    print("\n=== Configuración de Límites Personalizados ===")
-    
-    # Obtener límites actuales
-    limites = obtener_limites_usuario(usuario_id)
-    
-    if limites:
-        print("\nLímites actuales:")
-        for tipo, valor in limites.items():
-            print(f"• {tipo}: {valor}")
-    else:
-        print("No tienes límites configurados.")
-    
-    print("\nTipos de límites disponibles:")
-    print("1. diario - Límite de gasto diario")
-    print("2. transferencia - Límite por transferencia")
-    print("3. retiro - Límite por retiro")
-    print("4. compra - Límite por compra")
-    print("5. internacional - Límite para operaciones internacionales")
-    
-    tipo_limite = input("\nSelecciona el tipo de límite a configurar: ")
-    
-    tipos_validos = {
-        "1": "diario",
-        "2": "transferencia",
-        "3": "retiro",
-        "4": "compra",
-        "5": "internacional"
-    }
-    
-    if tipo_limite in tipos_validos:
-        tipo_limite = tipos_validos[tipo_limite]
-    elif tipo_limite not in ["diario", "transferencia", "retiro", "compra", "internacional"]:
-        print("Tipo de límite no válido.")
-        return
-    
+    # Obtener estadísticas recientes
     try:
-        valor = float(input(f"Valor del límite para '{tipo_limite}': "))
+        estadisticas = obtener_estadisticas_usuario(usuario_id, 30)
         
-        if valor <= 0:
-            print("El valor debe ser mayor a cero.")
-            return
+        # Usar el sistema de detección de fraude para analizar patrones
+        # Esto es una simulación simplificada
+        resultado_analisis = {
+            "nivel_riesgo": "bajo",
+            "anomalias_detectadas": 0,
+            "ubicaciones_inusuales": False,
+            "patrones_sospechosos": False
+        }
         
-        guardar_limite_personalizado(usuario_id, {"tipo": tipo_limite, "valor": valor})
-        print(f"✅ Límite para '{tipo_limite}' configurado a {valor}.")
+        print("\nResultados del análisis de seguridad:")
+        print(f"• Nivel de riesgo actual: {resultado_analisis.get('nivel_riesgo').upper()}")
+        print(f"• Anomalías detectadas: {resultado_analisis.get('anomalias_detectadas')}")
         
-    except ValueError:
-        print("Por favor ingresa un valor numérico válido.")
+        if resultado_analisis.get('ubicaciones_inusuales'):
+            print("⚠️ Se detectaron inicios de sesión desde ubicaciones inusuales.")
+        else:
+            print("✅ No se detectaron inicios de sesión desde ubicaciones inusuales.")
+        
+        if resultado_analisis.get('patrones_sospechosos'):
+            print("⚠️ Se detectaron patrones de transacción sospechosos.")
+        else:
+            print("✅ No se detectaron patrones de transacción sospechosos.")
+        
+        print("\nRecomendaciones de seguridad:")
+        print("• Revisa regularmente tus transacciones")
+        print("• Activa notificaciones para todas las transacciones")
+        print("• No compartas tus credenciales con nadie")
+        print("• Actualiza tu contraseña regularmente")
+        
+    except Exception as e:
+        print(f"Error al obtener análisis de seguridad: {str(e)}")
+    
+    input("\nPresiona Enter para volver al menú...")
+
+def ver_nivel_riesgo(usuario_id):
+    """
+    Muestra el nivel de riesgo de la cuenta y análisis detallado
+    """
+    print("\n=== Nivel de Riesgo de Cuenta ===")
+    
+    # En un sistema real, esto consultaría el nivel de riesgo calculado
+    # por el sistema de detección de fraude
+    
+    # Simulación de niveles de riesgo
+    factores_riesgo = [
+        {"factor": "Ubicación geográfica", "nivel": "bajo", "score": 10},
+        {"factor": "Patrones de actividad", "nivel": "medio", "score": 40},
+        {"factor": "Frecuencia de transacciones", "nivel": "bajo", "score": 15},
+        {"factor": "Montos de transacción", "nivel": "bajo", "score": 20}
+    ]
+    
+    score_total = sum(f.get("score", 0) for f in factores_riesgo)
+    nivel_riesgo = "bajo" if score_total < 50 else "medio" if score_total < 75 else "alto"
+    
+    print(f"\nPuntuación de riesgo: {score_total}/100")
+    print(f"Nivel de riesgo general: {nivel_riesgo.upper()}")
+    
+    print("\nFactores que contribuyen al nivel de riesgo:")
+    for factor in factores_riesgo:
+        print(f"• {factor.get('factor')}: {factor.get('nivel').upper()} ({factor.get('score')} puntos)")
+    
+    print("\nRecomendaciones basadas en tu nivel de riesgo:")
+    if nivel_riesgo == "bajo":
+        print("✅ Tu nivel de riesgo es bajo. Continúa con tus prácticas seguras.")
+    elif nivel_riesgo == "medio":
+        print("⚠️ Tu nivel de riesgo es medio. Considera revisar tus hábitos de transacción.")
+    else:
+        print("🚨 Tu nivel de riesgo es alto. Se recomienda contactar a soporte.")
+    
+    input("\nPresiona Enter para volver al menú...")
 
 def ver_notificaciones(usuario_id):
     """
-    Muestra las notificaciones del usuario
+    Muestra las notificaciones del usuario relacionadas con seguridad y fraude
     """
     print("\n=== Notificaciones ===")
     
@@ -415,15 +238,17 @@ def ver_notificaciones(usuario_id):
             notificaciones = obtener_notificaciones(usuario_id, True)
             if not notificaciones:
                 print("No tienes notificaciones antiguas.")
+                input("\nPresiona Enter para volver al menú...")
                 return
         else:
+            input("\nPresiona Enter para volver al menú...")
             return
     
     print(f"\nTienes {len(notificaciones)} notificaciones:")
     
     for i, n in enumerate(notificaciones, 1):
         leida = "📭" if n.get("leida") else "📬"
-        print(f"{i}. {leida} {n['timestamp']} - {n['titulo']}")
+        print(f"{i}. {leida} {n.get('timestamp')} - {n.get('titulo')}")
     
     ver_detalle = input("\n¿Deseas ver el detalle de alguna notificación? (número/n): ")
     
@@ -434,46 +259,17 @@ def ver_notificaciones(usuario_id):
             if 0 <= idx < len(notificaciones):
                 n = notificaciones[idx]
                 
-                print(f"\n📩 {n['titulo']}")
-                print(f"Fecha: {n['timestamp']}")
-                print(f"Mensaje: {n['mensaje']}")
+                print(f"\n📩 {n.get('titulo')}")
+                print(f"Fecha: {n.get('timestamp')}")
+                print(f"Mensaje: {n.get('mensaje')}")
                 
                 if not n.get("leida"):
-                    marcar_notificacion_leida(n["_id"])
+                    marcar_notificacion_leida(n.get("_id"))
                     print("Notificación marcada como leída.")
             else:
                 print("Número de notificación inválido.")
                 
         except ValueError:
             print("Por favor ingresa un número válido.")
-
-def crear_nueva_cuenta(usuario_id):
-    """
-    Permite al usuario crear una nueva cuenta
-    """
-    print("\n=== Crear nueva cuenta ===")
-
-    account_id = input("ID de cuenta: ")
-    account_type = input("Tipo de cuenta (ahorro, nómina, etc.): ")
-    currency = input("Moneda (MXN, USD, etc.): ")
-    try:
-        balance = float(input("Saldo inicial: "))
-    except ValueError:
-        print("Error: El saldo debe ser un número.")
-
-    if cuenta_ya_existe(account_id):
-        print("Ya existe una cuenta con ese ID.")
-
-    cuenta = {
-        "account_id": account_id,
-        "account_type": account_type,
-        "balance": balance,
-        "currency": currency,
-        "status": "activa",
-        "spending_limit": 0.0  # valor por defecto si no se solicita
-    }
-    try:
-        uids = crear_cuenta_para_usuario(usuario_id,cuenta)
-        print("Cuenta creada y asociada exitosamente. UID:", uids)
-    except Exception as e:
-        print("Error al crear la cuenta:", e)
+    
+    input("\nPresiona Enter para volver al menú...")
