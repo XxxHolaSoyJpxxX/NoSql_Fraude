@@ -1,6 +1,11 @@
-from db.Dgraph.dgraph import obtener_cuentas_usuario,agregar_cuenta_a_usuario,cuenta_ya_existe
+from db.Dgraph.dgraph import obtener_cuentas_usuario, crear_cuenta_para_usuario, obtener_beneficiarios, agregar_beneficiario, eliminar_beneficiario
+from db.Cassandra.cassandra import obtener_ultimas_transacciones_usuario, registrar_transaccion, obtener_transacciones_cuenta, obtener_estadisticas_usuario
+from db.MongoDB.mongo import guardar_reporte_fraude, guardar_notificacion, obtener_notificaciones, marcar_notificacion_leida, guardar_limite_personalizado, obtener_limites_usuario
 
 def menu_usuario(usuario_id):
+    """
+    Menú principal del usuario que permite realizar diversas operaciones bancarias
+    """
     while True:
         print(f"\n=== Menú del Usuario: {usuario_id} ===")
         print("1. Ver y administrar cuentas/tarjetas")
@@ -16,25 +21,19 @@ def menu_usuario(usuario_id):
         opcion = input("Selecciona una opción: ")
 
         if opcion == "1":
-            cuentas = obtener_cuentas_usuario(usuario_id)
-            if not cuentas:
-                print("🔍 No tienes cuentas asociadas.")
-            else:
-                print("\nTus cuentas:")
-                for c in cuentas:
-                    print(f"• {c['account_type'].capitalize()} ({c['account_id']}): {c['balance']} {c['currency']} - Estado: {c['status']}")
+            administrar_cuentas(usuario_id)
         elif opcion == "2":
-            print("[TODO] Realizar transacción (Cassandra + MongoDB + Dgraph)")
+            realizar_transaccion(usuario_id)
         elif opcion == "3":
-            print("[TODO] Reporte de transacciones no reconocidas (MongoDB)")
+            reportar_fraude(usuario_id)
         elif opcion == "4":
-            print("[TODO] Visualización de historial financiero (Cassandra)")
+            ver_historial_financiero(usuario_id)
         elif opcion == "5":
-            print("[TODO] Gestión de beneficiarios frecuentes (Dgraph)")
+            gestionar_beneficiarios(usuario_id)
         elif opcion == "6":
-            print("[TODO] Configuración de límites personalizados (MongoDB)")
+            configurar_limites(usuario_id)
         elif opcion == "7":
-            print("[TODO] Visualización de notificaciones (MongoDB)")
+            ver_notificaciones(usuario_id)
         elif opcion == "8":
             print("\n=== Crear nueva cuenta ===")
             account_id = input("ID de cuenta: ")
@@ -46,25 +45,21 @@ def menu_usuario(usuario_id):
                 print("Error: El saldo debe ser un número.")
                 continue
 
-            if cuenta_ya_existe(account_id):
-                print("Ya existe una cuenta con ese ID.")
-                continue
-    
             cuenta = {
                 "account_id": account_id,
                 "account_type": account_type,
                 "balance": balance,
                 "currency": currency,
-                "status": "activa",
-                "spending_limit": 0.0  # valor por defecto si no se solicita
+                "status": "activa"
             }
-            try:
-                uids = agregar_cuenta_a_usuario(usuario_id,cuenta)
-                print("Cuenta creada y asociada exitosamente. UID:", uids)
-            except Exception as e:
-                print("Error al crear la cuenta:", e)
+
+            crear_cuenta_para_usuario(usuario_id, cuenta)
+            print("Cuenta creada y asociada exitosamente.")
         elif opcion == "9":
             print("Saliendo del menú de usuario.")
             break
         else:
-            print("Opción no válida.")
+            print("❌ Error al crear la cuenta.")
+            
+    except ValueError:
+        print("Error: El saldo debe ser un número.")
