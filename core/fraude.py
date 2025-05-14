@@ -1,7 +1,7 @@
 from datetime import datetime
 from db.MongoDB.mongo import guardar_alerta_biometrica, obtener_ubicaciones_conocidas
 from db.Cassandra.cassandra import obtener_ultimas_transacciones_usuario
-from db.Dgraph.dgraph import consultar_perfil_comportamiento, obtener_conexiones_sospechosas, obtener_ubicacion_transaccion
+#from db.Dgraph.dgraph import
 
 class SistemaDeteccionFraude:
     """

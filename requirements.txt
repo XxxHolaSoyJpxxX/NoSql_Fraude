@@ -1,11 +1,10 @@
+#Cassandra
 cassandra-driver
 time_uuid
-fastapi[all]
-pydantic
+#MongoDB
 pymongo
 requests
 falcon
-pymongo
 uvicorn
-requests
+#Dgrpah
 pydgraph

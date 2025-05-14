@@ -1,9 +1,9 @@
 # core/registro.py
-from db.MongoDB import crear_usuario
-from db.MongoDB import verificar_credenciales_usuario
-from db.MongoDB import verificar_credenciales_admin
+from db.MongoDB.mongo import crear_usuario
+from db.MongoDB.mongo import verificar_credenciales_usuario
+from db.MongoDB.mongo import verificar_credenciales_admin
 from core.admin import menu_admin
-from db.MongoDB import actualizar_last_login
+from db.MongoDB.mongo import actualizar_last_login
 from core.usuario import menu_usuario
 from datetime import datetime
 import re
@@ -12,7 +12,7 @@ def validar_email(email):
     """
     Valida el formato del correo electrónico
     """
-    patron = r'^[\w\.-]+@[\w\.-]+\.\w+
+    patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(patron, email) is not None
 
 def validar_password(password):

@@ -419,3 +419,266 @@ def cuenta_ya_existe(account_id):
     res = client.txn(read_only=True).query(query)
     data = json.loads(res.json)
     return bool(data.get("existe"))
+
+def obtener_usuario_por_uid(uid):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        user(func: uid({uid})) {{
+            uid
+            user_id
+            owns_accounts {{
+                account_id
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def buscar_usuario_por_fragmento(fragmento):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        usuarios(func: alloftext(user_id, "{fragmento}")) {{
+            uid
+            user_id
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def obtener_cuenta_por_id(account_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        cuenta(func: eq(account_id, "{account_id}")) {{
+            uid
+            account_type
+            balance
+            currency
+            owned_by {{
+                user_id
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def buscar_cuentas_por_tipo_estado(tipo=None, estado=None):
+    client = get_dgraph_client()
+    filtros = []
+    if tipo:
+        filtros.append(f'eq(account_type, "{tipo}")')
+    if estado:
+        filtros.append(f'eq(status, "{estado}")')
+    filtro = " AND ".join(filtros) if filtros else ""
+    query = f"""
+    {{
+        cuentas(func: type(Account)) {"@filter(" + filtro + ")" if filtro else ""} {{
+            account_id
+            balance
+            status
+            account_type
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def obtener_transacciones_cuenta(account_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        cuenta(func: eq(account_id, "{account_id}")) {{
+            outgoing_transactions {{
+                transaction_id
+                amount
+                to_account {{ account_id }}
+                timestamp
+            }}
+            incoming_transactions {{
+                transaction_id
+                amount
+                from_account {{ account_id }}
+                timestamp
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def buscar_transacciones_por_estado(estado):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        transacciones(func: eq(transaction_status, "{estado}")) {{
+            transaction_id
+            amount
+            from_account {{ account_id }}
+            to_account {{ account_id }}
+            timestamp
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def buscar_transacciones_por_fecha(inicio, fin):
+    client = get_dgraph_client()
+    query = f'''
+    {{
+        transacciones(func: type(Transaccion)) @filter(ge(timestamp, "{inicio}") AND le(timestamp, "{fin}")) {{
+            transaction_id
+            timestamp
+            amount
+            from_account {{ account_id }}
+            to_account {{ account_id }}
+        }}
+    }}
+    '''
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def historial_transacciones_usuario(user_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        user(func: eq(user_id, "{user_id}")) {{
+            owns_accounts {{
+                account_id
+                outgoing_transactions {{
+                    transaction_id
+                    amount
+                    timestamp
+                    to_account {{ account_id }}
+                }}
+                incoming_transactions {{
+                    transaction_id
+                    amount
+                    timestamp
+                    from_account {{ account_id }}
+                }}
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def buscar_transacciones_por_localizacion(latitud, longitud, radio_metros):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        transacciones(func: near(source_location, [{latitud}, {longitud}], {radio_metros})) {{
+            transaction_id
+            amount
+            timestamp
+            source_location
+            destination_location
+            from_account {{
+                account_id
+            }}
+            to_account {{
+                account_id
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def transacciones_entre_mismas_cuentas():
+    client = get_dgraph_client()
+    query = """
+    {
+        transacciones(func: type(Transaccion)) @cascade {
+            transaction_id
+            from_account {
+                account_id
+                outgoing_transactions @filter(uid_in(to_account, uid(from_account))) {
+                    transaction_id
+                    to_account {
+                        account_id
+                    }
+                }
+            }
+        }
+    }
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def transacciones_usuario_por_uid(uid):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        transacciones(func: uid({uid})) {{
+            transaction_id
+            timestamp
+            source_location
+            from_account {{
+                uid
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def transacciones_por_usuario_en_intervalo(user_id, desde, hasta):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        user(func: eq(user_id, "{user_id}")) {{
+            owns_accounts {{
+                outgoing_transactions @filter(ge(timestamp, "{desde}") AND le(timestamp, "{hasta}")) {{
+                    transaction_id
+                    timestamp
+                    amount
+                }}
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def historial_geografico_usuario(user_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        user(func: eq(user_id, "{user_id}")) {{
+            owns_accounts {{
+                outgoing_transactions {{
+                    transaction_id
+                    source_location
+                    timestamp
+                }}
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+def transacciones_fallidas_usuario(user_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        user(func: eq(user_id, "{user_id}")) {{
+            owns_accounts {{
+                outgoing_transactions @filter(eq(transaction_status, "failed")) {{
+                    transaction_id
+                    timestamp
+                    amount
+                }}
+            }}
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
