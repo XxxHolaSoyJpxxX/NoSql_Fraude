@@ -19,10 +19,6 @@ def definir_schema():
     schema = """
     type User {
         user_id
-        full_name
-        email
-        phone
-        registration_date
         owns_accounts
     }
 
@@ -52,10 +48,6 @@ def definir_schema():
 
     # Usuarios
     user_id: string @index(exact) .
-    full_name: string @index(term) .
-    email: string @index(exact) .
-    phone: string @index(exact) .
-    registration_date: datetime .
     owns_accounts: [uid] @reverse .
 
     # Cuentas
@@ -87,17 +79,16 @@ def definir_schema():
 # AGREGAR USUARIO
 # ─────────────────────────────
 
-def agregar_usuario(user_id, full_name, email, phone):
+def agregar_usuario(user_id):
     client = get_dgraph_client()
     txn = client.txn()
     try:
         usuario = {
             "dgraph.type": "User",
             "user_id": user_id,
-            "full_name": full_name,
-            "email": email,
-            "phone": phone,
-            "registration_date": datetime.utcnow().isoformat()
+            "owns_accounts":{
+                
+            }
         }
         response = txn.mutate(set_obj=usuario)
         txn.commit()
@@ -116,10 +107,6 @@ def obtener_usuarios():
         usuarios(func: type(User)) {
             uid
             user_id
-            full_name
-            email
-            phone
-            registration_date
             owns_accounts {
                 uid
                 account_id
@@ -131,33 +118,6 @@ def obtener_usuarios():
     res = client.txn(read_only=True).query(query)
     return json.loads(res.json)
 
-# ─────────────────────────────
-# ACTUALIZAR USUARIO
-# ─────────────────────────────
-
-def actualizar_nombre_usuario(user_id, nuevo_nombre):
-    client = get_dgraph_client()
-    txn = client.txn()
-    try:
-        query = f"""
-        {{
-            user(func: eq(user_id, "{user_id}")) {{
-                uid
-            }}
-        }}
-        """
-        res = txn.query(query)
-        uid = json.loads(res.json)["user"][0]["uid"]
-
-        update = {
-            "uid": uid,
-            "full_name": nuevo_nombre
-        }
-        txn.mutate(set_obj=update)
-        txn.commit()
-    finally:
-        txn.discard()
-        
 # ─────────────────────────────
 # ELEMINAR USARIO
 # ─────────────────────────────
@@ -413,3 +373,49 @@ def obtener_cuentas_usuario(usuario_id):
         return []
 
     return data["cuentas"][0].get("owns_accounts", [])
+
+def agregar_cuenta_a_usuario(usuario_id, cuenta):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            user(func: eq(user_id, "{usuario_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        user_data = json.loads(res.json)
+
+        if not user_data.get("user"):
+            raise ValueError(f"Usuario con user_id '{usuario_id}' no encontrado.")
+
+        user_uid = user_data["user"][0]["uid"]
+
+        cuenta["dgraph.type"] = "Account"
+
+        usuario_update = {
+            "uid": user_uid,
+            "owns_accounts": [cuenta]
+        }
+
+        response = txn.mutate(set_obj=usuario_update)
+        txn.commit()
+
+        return response.uids
+    finally:
+        txn.discard()
+
+def cuenta_ya_existe(account_id):
+    client = get_dgraph_client()
+    query = f"""
+    {{
+        existe(func: eq(account_id, "{account_id}")) {{
+            uid
+        }}
+    }}
+    """
+    res = client.txn(read_only=True).query(query)
+    data = json.loads(res.json)
+    return bool(data.get("existe"))

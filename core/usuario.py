@@ -1,4 +1,4 @@
-from db.Dgraph.dgraph import obtener_cuentas_usuario, crear_cuenta_para_usuario
+from db.Dgraph.dgraph import obtener_cuentas_usuario,agregar_cuenta_a_usuario,cuenta_ya_existe
 
 def menu_usuario(usuario_id):
     while True:
@@ -46,16 +46,23 @@ def menu_usuario(usuario_id):
                 print("Error: El saldo debe ser un número.")
                 continue
 
+            if cuenta_ya_existe(account_id):
+                print("Ya existe una cuenta con ese ID.")
+                continue
+    
             cuenta = {
                 "account_id": account_id,
                 "account_type": account_type,
                 "balance": balance,
                 "currency": currency,
-                "status": "activa"
+                "status": "activa",
+                "spending_limit": 0.0  # valor por defecto si no se solicita
             }
-
-            crear_cuenta_para_usuario(usuario_id, cuenta)
-            print("Cuenta creada y asociada exitosamente.")
+            try:
+                uids = agregar_cuenta_a_usuario(usuario_id,cuenta)
+                print("Cuenta creada y asociada exitosamente. UID:", uids)
+            except Exception as e:
+                print("Error al crear la cuenta:", e)
         elif opcion == "9":
             print("Saliendo del menú de usuario.")
             break
