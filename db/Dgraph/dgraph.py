@@ -84,44 +84,307 @@ def definir_schema():
     client.alter(op)
 
 # ─────────────────────────────
-# CREAR CUENTA ASOCIADA A UN USUARIO
+# AGREGAR USUARIO
 # ─────────────────────────────
 
-def crear_cuenta_para_usuario(usuario_id, cuenta):
+def agregar_usuario(user_id, full_name, email, phone):
     client = get_dgraph_client()
     txn = client.txn()
     try:
-        # Buscar el UID del usuario
+        usuario = {
+            "dgraph.type": "User",
+            "user_id": user_id,
+            "full_name": full_name,
+            "email": email,
+            "phone": phone,
+            "registration_date": datetime.utcnow().isoformat()
+        }
+        response = txn.mutate(set_obj=usuario)
+        txn.commit()
+        return response.uids
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+# CONSULTAR CUENTAS DE UN USUARIOS
+# ─────────────────────────────
+
+def obtener_usuarios():
+    client = get_dgraph_client()
+    query = """
+    {
+        usuarios(func: type(User)) {
+            uid
+            user_id
+            full_name
+            email
+            phone
+            registration_date
+            owns_accounts {
+                uid
+                account_id
+                balance
+            }
+        }
+    }
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+# ─────────────────────────────
+# ACTUALIZAR USUARIO
+# ─────────────────────────────
+
+def actualizar_nombre_usuario(user_id, nuevo_nombre):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
         query = f"""
         {{
-          usuario(func: eq(usuario_id, "{usuario_id}")) {{
-            uid
-          }}
+            user(func: eq(user_id, "{user_id}")) {{
+                uid
+            }}
         }}
         """
-        res = client.txn(read_only=True).query(query)
-        data = json.loads(res.json)
-        uid_usuario = data.get("usuario", [{}])[0].get("uid")
+        res = txn.query(query)
+        uid = json.loads(res.json)["user"][0]["uid"]
 
-        # Si el usuario no existe, lo crea
-        if not uid_usuario:
-            uid_usuario = f"_:{usuario_id}"
-
-        # Crear cuenta vinculada
-        data = {
-            "uid": uid_usuario,
-            "usuario_id": usuario_id,
-            "tiene_cuenta": [
-                {
-                    "account_id": cuenta["account_id"],
-                    "account_type": cuenta["account_type"],
-                    "balance": cuenta["balance"],
-                    "currency": cuenta["currency"],
-                    "status": cuenta["status"]
-                }
-            ]
+        update = {
+            "uid": uid,
+            "full_name": nuevo_nombre
         }
-        txn.mutate(set_obj=data, commit_now=True)
+        txn.mutate(set_obj=update)
+        txn.commit()
+    finally:
+        txn.discard()
+        
+# ─────────────────────────────
+# ELEMINAR USARIO
+# ─────────────────────────────
+        
+def eliminar_usuario(user_id):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            user(func: eq(user_id, "{user_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        uid = json.loads(res.json)["user"][0]["uid"]
+
+        delete_obj = {
+            "uid": uid
+        }
+        txn.mutate(del_obj=delete_obj)
+        txn.commit()
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+# Agregar Cuenta
+# ─────────────────────────────
+
+def agregar_cuenta(account_id, account_type, balance, currency, status, spending_limit, user_uid):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        cuenta = {
+            "dgraph.type": "Account",
+            "account_id": account_id,
+            "account_type": account_type,
+            "balance": balance,
+            "currency": currency,
+            "status": status,
+            "spending_limit": spending_limit,
+            "owned_by": {"uid": user_uid}
+        }
+        response = txn.mutate(set_obj=cuenta)
+        txn.commit()
+        return response.uids
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+# Consultar Cuentas
+# ─────────────────────────────
+
+def obtener_cuentas():
+    client = get_dgraph_client()
+    query = """
+    {
+        cuentas(func: type(Account)) {
+            uid
+            account_id
+            account_type
+            balance
+            currency
+            status
+            spending_limit
+            owned_by {
+                uid
+                user_id
+                full_name
+            }
+        }
+    }
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+# ─────────────────────────────
+# Actualizar Balance
+# ─────────────────────────────
+
+def actualizar_balance(account_id, nuevo_balance):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            cuenta(func: eq(account_id, "{account_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        uid = json.loads(res.json)["cuenta"][0]["uid"]
+
+        update = {
+            "uid": uid,
+            "balance": nuevo_balance
+        }
+        txn.mutate(set_obj=update)
+        txn.commit()
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+#  Eliminar Cuenta
+# ─────────────────────────────
+
+def eliminar_cuenta(account_id):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            cuenta(func: eq(account_id, "{account_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        uid = json.loads(res.json)["cuenta"][0]["uid"]
+
+        txn.mutate(del_obj={"uid": uid})
+        txn.commit()
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+#  Agregar Transacción
+# ─────────────────────────────
+
+def agregar_transaccion(transaction_id, from_uid, to_uid, amount, description, transaction_status):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        transaccion = {
+            "dgraph.type": "Transaccion",
+            "transaction_id": transaction_id,
+            "from_account": {"uid": from_uid},
+            "to_account": {"uid": to_uid},
+            "amount": amount,
+            "timestamp": datetime.utcnow().isoformat(),
+            "description": description,
+            "transaction_status": transaction_status
+        }
+        response = txn.mutate(set_obj=transaccion)
+        txn.commit()
+        return response.uids
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+#   Consultar Transacciones
+# ─────────────────────────────
+
+def obtener_transacciones():
+    client = get_dgraph_client()
+    query = """
+    {
+        transacciones(func: type(Transaccion)) {
+            uid
+            transaction_id
+            amount
+            timestamp
+            description
+            transaction_status
+            from_account {
+                uid
+                account_id
+            }
+            to_account {
+                uid
+                account_id
+            }
+        }
+    }
+    """
+    res = client.txn(read_only=True).query(query)
+    return json.loads(res.json)
+
+# ─────────────────────────────
+#  Actualizar Estado de Transacción
+# ─────────────────────────────
+
+def actualizar_estado_transaccion(transaction_id, nuevo_estado):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            trans(func: eq(transaction_id, "{transaction_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        uid = json.loads(res.json)["trans"][0]["uid"]
+
+        update = {
+            "uid": uid,
+            "transaction_status": nuevo_estado
+        }
+        txn.mutate(set_obj=update)
+        txn.commit()
+    finally:
+        txn.discard()
+
+# ─────────────────────────────
+#   Eliminar Transacción
+# ─────────────────────────────
+
+def eliminar_transaccion(transaction_id):
+    client = get_dgraph_client()
+    txn = client.txn()
+    try:
+        query = f"""
+        {{
+            trans(func: eq(transaction_id, "{transaction_id}")) {{
+                uid
+            }}
+        }}
+        """
+        res = txn.query(query)
+        uid = json.loads(res.json)["trans"][0]["uid"]
+
+        txn.mutate(del_obj={"uid": uid})
+        txn.commit()
     finally:
         txn.discard()
 
@@ -133,8 +396,8 @@ def obtener_cuentas_usuario(usuario_id):
     client = get_dgraph_client()
     query = f"""
     {{
-      cuentas(func: eq(usuario_id, "{usuario_id}")) {{
-        tiene_cuenta {{
+      cuentas(func: eq(user_id, "{usuario_id}")) {{
+        owns_accounts {{
           account_id
           account_type
           balance
@@ -146,4 +409,7 @@ def obtener_cuentas_usuario(usuario_id):
     """
     res = client.txn(read_only=True).query(query)
     data = json.loads(res.json)
-    return data.get("cuentas", [])[0].get("tiene_cuenta", []) if data.get("cuentas") else []
+    if not data.get("cuentas"):
+        return []
+
+    return data["cuentas"][0].get("owns_accounts", [])
