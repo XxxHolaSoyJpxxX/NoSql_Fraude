@@ -12,7 +12,7 @@ def validar_email(email):
     """
     Valida el formato del correo electrónico
     """
-    patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'$'
     return re.match(patron, email) is not None
 
 def validar_password(password):

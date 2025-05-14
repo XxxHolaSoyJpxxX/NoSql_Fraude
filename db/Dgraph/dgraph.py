@@ -682,3 +682,96 @@ def transacciones_fallidas_usuario(user_id):
     """
     res = client.txn(read_only=True).query(query)
     return json.loads(res.json)
+
+# ─────────────────────────────
+# FUNCIONES PARA DETECCIÓN DE FRAUDE
+# ─────────────────────────────
+
+def consultar_perfil_comportamiento(usuario_id):
+    """
+    Consulta el perfil de comportamiento de un usuario para detección de fraude
+    """
+    client = get_dgraph_client()
+    query = f"""
+    {{
+      perfil(func: eq(user_id, "{usuario_id}")) {{
+        uid
+        categorias_frecuentes
+        horarios_habituales
+        dias_habituales
+        monto_promedio
+      }}
+    }}
+    """
+    
+    res = client.txn(read_only=True).query(query)
+    data = json.loads(res.json)
+    
+    # Si no hay perfil, devolver uno predeterminado
+    if not data.get("perfil"):
+        return {
+            "categorias_frecuentes": [],
+            "horarios_habituales": [],
+            "dias_habituales": [],
+            "monto_promedio": 0
+        }
+    
+    return data["perfil"][0]
+
+def obtener_conexiones_sospechosas(usuario_id):
+    """
+    Obtiene las conexiones potencialmente sospechosas de un usuario
+    para análisis de redes de fraude
+    """
+    client = get_dgraph_client()
+    query = f"""
+    {{
+      usuario(func: eq(user_id, "{usuario_id}")) {{
+        uid
+        owns_accounts {{
+          outgoing_transactions {{
+            to_account {{
+              owned_by {{
+                user_id
+                fraud_probability
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+    """
+    
+    res = client.txn(read_only=True).query(query)
+    data = json.loads(res.json)
+    
+    # Si no hay datos de conexiones sospechosas
+    if not data.get("usuario"):
+        return None
+    
+    # En una implementación real, aquí habría un análisis complejo
+    # Para simplificar, devolvemos un valor fijo de probabilidad
+    return {"fraud_probability": 0.2}  # Valor bajo por defecto
+
+def obtener_ubicacion_transaccion(transaccion_id):
+    """
+    Obtiene la ubicación desde donde se realizó una transacción
+    """
+    client = get_dgraph_client()
+    query = f"""
+    {{
+      transaccion(func: eq(transaction_id, "{transaccion_id}")) {{
+        uid
+        source_location
+        destination_location
+      }}
+    }}
+    """
+    
+    res = client.txn(read_only=True).query(query)
+    data = json.loads(res.json)
+    
+    if not data.get("transaccion"):
+        return None
+    
+    return data["transaccion"][0].get("source_location")
