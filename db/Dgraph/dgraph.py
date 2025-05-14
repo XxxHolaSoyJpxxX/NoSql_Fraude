@@ -17,7 +17,7 @@ def get_dgraph_client():
 def definir_schema():
     client = get_dgraph_client()
     schema = """
-   type User {
+type User {
     user_id
     full_name
     email
@@ -49,7 +49,8 @@ type Transaccion {
     description
     transaction_status
 }
-Usuarios
+
+# Usuarios
 user_id: string @index(exact) .
 full_name: string @index(term) .
 email: string @index(exact) .
@@ -57,7 +58,7 @@ phone: string @index(exact) .
 registration_date: datetime .
 owns_accounts: [uid] @reverse .
 
-Cuentas
+# Cuentas
 account_id: string @index(exact) .
 account_type: string @index(term) .
 balance: float .
@@ -68,7 +69,7 @@ owned_by: uid @reverse .
 outgoing_transactions: [uid] @reverse .
 incoming_transactions: [uid] @reverse .
 
-Transacciones
+# Transacciones
 transaction_id: string @index(exact) .
 source_location: geo .
 destination_location: geo .
@@ -147,4 +148,7 @@ def obtener_cuentas_usuario(usuario_id):
     data = json.loads(res.json)
     return data.get("cuentas", [])[0].get("tiene_cuenta", []) if data.get("cuentas") else []
 
-def 
+# ─────────────────────────────
+# INSERCION DE DATOS
+# ─────────────────────────────
+def insertar datos
