@@ -1,7 +1,7 @@
 from core.usuario import menu_usuario
 from core.admin import menu_admin
 from core.registro import registrar_usuario, login_usuario, login_admin
-from .db.Dgraph.dgraph import definir_schema
+from db.Dgraph.dgraph import definir_schema
 
 def main():
     definir_schema() 
