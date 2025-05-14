@@ -7,12 +7,13 @@ from db.MongoDB.mongo import actualizar_last_login
 from core.usuario import menu_usuario
 from datetime import datetime
 import re
+from db.Dgraph.dgraph import agregar_usuario
 
 def validar_email(email):
     """
     Valida el formato del correo electrónico
     """
-    patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'$'
+    patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(patron, email) is not None
 
 def validar_password(password):
@@ -79,6 +80,7 @@ def registrar_usuario():
 
     if crear_usuario(usuario):
         print("Usuario registrado correctamente.")
+        print(agregar_usuario(usuario_id))
     else:
         print("Error: El usuario ya existe.")
 
