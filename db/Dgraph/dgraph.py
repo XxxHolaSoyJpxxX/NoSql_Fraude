@@ -374,7 +374,7 @@ def obtener_cuentas_usuario(usuario_id):
 
     return data["cuentas"][0].get("owns_accounts", [])
 
-def agregar_cuenta_a_usuario(usuario_id, cuenta):
+def crear_cuenta_para_usuario(usuario_id, cuenta):
     client = get_dgraph_client()
     txn = client.txn()
     try:
