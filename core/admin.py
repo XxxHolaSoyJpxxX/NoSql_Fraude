@@ -1,4 +1,3 @@
-from core.fraude import SistemaDeteccionFraude
 import os
 import time
 from datetime import datetime

@@ -3,7 +3,7 @@ from db.MongoDB.mongo import crear_usuario
 from db.MongoDB.mongo import verificar_credenciales_usuario
 from db.MongoDB.mongo import verificar_credenciales_admin
 from core.admin import menu_admin
-from db.MongoDB.mongo import actualizar_last_login
+from db.MongoDB.mongo import actualizar_last_login, crear_cuenta_mongo
 from core.usuario import menu_usuario
 from datetime import datetime
 import re
@@ -48,7 +48,7 @@ def registrar_usuario():
         email = input("Correo electrónico: ")
         if validar_email(email):
             break
-        print("❌ Formato de correo electrónico inválido. Intenta nuevamente.")
+        print(" Formato de correo electrónico inválido. Intenta nuevamente.")
     
     # Validar contraseña
     while True:
@@ -56,14 +56,14 @@ def registrar_usuario():
         valido, mensaje = validar_password(password)
         if valido:
             break
-        print(f"❌ {mensaje}. Intenta nuevamente.")
+        print(f" {mensaje}. Intenta nuevamente.")
     
     # Confirmar contraseña
     while True:
         confirmacion = input("Confirma tu contraseña: ")
         if confirmacion == password:
             break
-        print("❌ Las contraseñas no coinciden. Intenta nuevamente.")
+        print(" Las contraseñas no coinciden. Intenta nuevamente.")
 
     usuario = {
         "usuario_id": usuario_id,
@@ -79,8 +79,9 @@ def registrar_usuario():
     }
 
     if crear_usuario(usuario):
+        account_id = crear_cuenta_mongo(email)
+        print(agregar_usuario(email, account_id))
         print("Usuario registrado correctamente.")
-        print(agregar_usuario(usuario_id))
     else:
         print("Error: El usuario ya existe.")
 
@@ -97,7 +98,8 @@ def login_usuario():
     if usuario:
         print(f"Bienvenido {usuario['nombre']} (ID: {usuario['usuario_id']})")
         actualizar_last_login(usuario["usuario_id"])
-        menu_usuario(usuario["usuario_id"])
+        menu_usuario(usuario["email"]) 
+
     else:
         print("Credenciales incorrectas.")
 
@@ -114,29 +116,29 @@ def registrar_admin():
         email = input("Correo electrónico: ")
         if validar_email(email):
             break
-        print("❌ Formato de correo electrónico inválido. Intenta nuevamente.")
+        print(" Formato de correo electrónico inválido. Intenta nuevamente.")
     
     # Validar contraseña (requisitos más estrictos para admin)
     while True:
         password = input("Crea una contraseña (mín. 10 caracteres, incluir mayúsculas, minúsculas, números y símbolos): ")
         if len(password) < 10:
-            print("❌ La contraseña debe tener al menos 10 caracteres.")
+            print(" La contraseña debe tener al menos 10 caracteres.")
             continue
         
         if not re.search(r'[A-Z]', password):
-            print("❌ La contraseña debe tener al menos una letra mayúscula.")
+            print(" La contraseña debe tener al menos una letra mayúscula.")
             continue
         
         if not re.search(r'[a-z]', password):
-            print("❌ La contraseña debe tener al menos una letra minúscula.")
+            print(" La contraseña debe tener al menos una letra minúscula.")
             continue
         
         if not re.search(r'[0-9]', password):
-            print("❌ La contraseña debe tener al menos un número.")
+            print(" La contraseña debe tener al menos un número.")
             continue
         
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-            print("❌ La contraseña debe tener al menos un símbolo especial.")
+            print(" La contraseña debe tener al menos un símbolo especial.")
             continue
         
         break
@@ -146,7 +148,7 @@ def registrar_admin():
         confirmacion = input("Confirma tu contraseña: ")
         if confirmacion == password:
             break
-        print("❌ Las contraseñas no coinciden. Intenta nuevamente.")
+        print(" Las contraseñas no coinciden. Intenta nuevamente.")
 
     admin = {
         "usuario_id": usuario_id,

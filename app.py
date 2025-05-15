@@ -1,10 +1,12 @@
-from core.usuario import menu_usuario
-from core.admin import menu_admin
 from core.registro import registrar_usuario, login_usuario, login_admin
 from db.Dgraph.dgraph import definir_schema
+from db.Cassandra.cassandra import crear_tabla_transacciones_amount, crear_tabla_transacciones_status, crear_tabla_transacciones_timestap
 
 def main():
     definir_schema() 
+    crear_tabla_transacciones_timestap()
+    crear_tabla_transacciones_status()
+    crear_tabla_transacciones_amount()
 
     while True:
         print("\n==============================")
