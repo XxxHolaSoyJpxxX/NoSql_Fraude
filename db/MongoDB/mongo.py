@@ -3,6 +3,7 @@ from datetime import datetime
 import uuid
 
 from db.Dgraph.dgraph import obtener_cuenta_completa, obtener_cuenta_por_email, obtener_uid_cuenta
+from db.Cassandra.cassandra import registrar_accion_admin, ver_transacciones_por_timestamp
 
 
 def get_mongo_db():
@@ -75,7 +76,7 @@ def obtener_usuario(usuario_id):
     usuario = db.usuarios.find_one({"usuario_id": usuario_id})
     return usuario
 
-def crear_cuenta_mongo(usuario_id):
+def crear_cuenta_mongo(usuario_id, lat,lon):
     """
     Crea una nueva cuenta asociada a un usuario en MongoDB
     """
@@ -85,10 +86,16 @@ def crear_cuenta_mongo(usuario_id):
         "account_id": account_id,
         "usuario_id": usuario_id,
         "balance": 0,
-        "created_at": datetime.now().isoformat()
+        "bloqueada": False,  # Nueva cuenta no está bloqueada
+        "created_at": datetime.now().isoformat(),
+        "ubicacion": {
+            "lat": lat,
+            "lon": lon
+        }
     }
     db.cuentas.insert_one(cuenta)
     return account_id
+
 
 def actualizar_balances_en_mongo(account_id_origen, account_id_destino, monto):
     db = get_mongo_db()
@@ -138,27 +145,81 @@ def ver_cuenta(email):
 
     db = get_mongo_db()
 
-    # Obtener usuario desde MongoDB
     usuario = db.usuarios.find_one({"email": email})
     if not usuario:
-        print("⚠️ Usuario no encontrado en MongoDB.")
+        print(" Usuario no encontrado en MongoDB.")
         return
 
     print(f"Nombre: {usuario.get('nombre', 'N/A')}")
     print(f"Email: {usuario['email']}")
     print(f"Último inicio de sesión: {usuario.get('last_login', 'N/A')}")
 
-    # Obtener el account_id desde Dgraph
     account_id = obtener_cuenta_por_email(email)
     if not account_id:
-        print("⚠️ No se encontró la cuenta asociada en Dgraph.")
+        print(" No se encontró la cuenta asociada en Dgraph.")
         return
 
-    # Buscar cuenta en MongoDB usando el account_id
     cuenta = db.cuentas.find_one({"account_id": account_id})
     if not cuenta:
-        print("⚠️ Cuenta no encontrada en MongoDB.")
+        print(" Cuenta no encontrada en MongoDB.")
         return
 
     print(f"ID de Cuenta: {cuenta['account_id']}")
     print(f"Balance: ${cuenta['balance']:.2f}")
+
+
+def auditoria(admin_id):
+    print("\n=== Auditoría de Usuario ===")
+    email = input("Ingresa el correo del usuario a auditar: ")
+    ver_cuenta(email)
+    ver_transacciones_por_timestamp(email)
+
+    registrar_accion_admin(
+        admin_id,
+        "Auditoría de usuario",
+        f"Cuenta auditada: {email}"
+    )
+
+def bloquear_cuenta(admin_id):
+    db = get_mongo_db()
+    email = input("Correo del usuario a bloquear: ").strip()
+
+    account_id = obtener_cuenta_por_email(email)
+    if not account_id:
+        print(" No se encontró la cuenta en Dgraph.")
+        return
+
+    result = db.cuentas.update_one(
+        {"account_id": account_id},
+        {"$set": {"bloqueada": True}}
+    )
+
+    if result.matched_count:
+        print(" Cuenta bloqueada exitosamente.")
+        registrar_accion_admin(admin_id, "Bloqueo de cuenta", f"Usuario: {email}")
+    else:
+        print(" No se pudo bloquear la cuenta (no encontrada en MongoDB).")
+
+    registrar_accion_admin(admin_id, f'Bloque cuenta {account_id}', 'Bloqueo de cuenta')
+
+def desbloquear_cuenta(admin_id):
+    db = get_mongo_db()
+    email = input("Correo del usuario a desbloquear: ").strip()
+
+    account_id = obtener_cuenta_por_email(email)
+    if not account_id:
+        print(" No se encontró la cuenta en Dgraph.")
+        return
+
+    result = db.cuentas.update_one(
+        {"account_id": account_id},
+        {"$set": {"bloqueada": False}}
+    )
+
+    if result.matched_count:
+        print(" Cuenta desbloqueada exitosamente.")
+        registrar_accion_admin(admin_id, "Desbloqueo de cuenta", f"Usuario: {email}")
+    else:
+        print(" No se pudo desbloquear la cuenta (no encontrada en MongoDB).")
+
+    registrar_accion_admin(admin_id, f'Desbloqueo cuenta {account_id}', 'Desbloqueo de cuenta')

@@ -2,34 +2,37 @@ import os
 import time
 from datetime import datetime
 
-def menu_admin():
+from db.Cassandra.cassandra import mostrar_todas_transacciones, ver_acciones_de_admin, ver_todas_las_acciones_admin
+from db.MongoDB.mongo import auditoria, bloquear_cuenta, desbloquear_cuenta
+
+def menu_admin(admin_id):
     """
     Panel de administración principal para el sistema de detección de fraude
     """
-    admin_id = None  # En un sistema real, se pasaría como parámetro
     
     while True:
         print("\n=== Panel de Administración ===")
         print("1. Dashboard de monitoreo en tiempo real") #Todas las transacciones de todos los usuarios
         print("2. Ver todos los fraudes") 
-        print("5. Reportes y estadísticas de fraude") #estadisticas de tipo de fraude
-        print("6. Gestión de perfiles de riesgo") #top global de perfiles de fraude
-        print("7. Listas de vigilancia") #ver todos los perfiles con fraude
-        print("9. Auditoría de acciones de administradores") #mostrar toda la info de un usuario en especifico
+        print("3. Reportes y estadísticas de fraude") #estadisticas de tipo de fraude
+        print("4. Gestión de perfiles de riesgo") #top global de perfiles de fraude
+        print("5. Listas de vigilancia") #ver todos los perfiles con fraude
+        print("6. Auditoría de acciones de administradores") #mostrar toda la info de un usuario en especifico
         #print("10. Configuración de umbrales de alerta")
-        print("12. Bloquear cuenta") #bloquear transacciones de un usuario
-        print("1. Desbloquear cuenta")
-        print("13. Aprobación de transacciones de alto riesgo") #cambiar el status de una transaccion fraude
-        print("16. Visualización de anomalías geográficas") #ver solamente los fraudes geograficos
-        print("19. Análisis de comportamiento de administradores") #ver todas las acciones de cuentas de administradores
-        print("1. Soporte")
-        print("1. Notificar usuario")
-        print("21. Salir")
+        print("7. Bloquear cuenta") #bloquear transacciones de un usuario
+        print("8. Desbloquear cuenta")
+        print("9. Aprobación de transacciones de alto riesgo") #cambiar el status de una transaccion fraude
+        print("10. Visualización de anomalías geográficas") #ver solamente los fraudes geograficos
+        print("11. Análisis de comportamiento de administradores") #ver todas las acciones de cuentas de administradores
+        print("12. Auditoria de administrador")
+        print("12. Soporte")
+        print("13. Notificar usuario")
+        print("14. Salir")
 
         opcion = input("Selecciona una opción: ")
 
         if opcion == "1":
-            dashboard_monitoreo(admin_id)
+            mostrar_todas_transacciones(admin_id)
         elif opcion == "2":
             gestion_reglas_fraude(admin_id)
         elif opcion == "3":
@@ -39,23 +42,23 @@ def menu_admin():
         elif opcion == "5":
             reportes_estadisticas(admin_id)
         elif opcion == "6":
-            gestion_perfiles_riesgo(admin_id)
+            auditoria(admin_id)
         elif opcion == "7":
-            listas_vigilancia(admin_id)
+            bloquear_cuenta(admin_id)
         elif opcion == "8":
-            alertas_masivas(admin_id)
+            desbloquear_cuenta(admin_id)
         elif opcion == "9":
             auditoria_acciones(admin_id)
         elif opcion == "10":
-            configuracion_umbrales(admin_id)
+            ver_todas_las_acciones_admin(admin_id)
         elif opcion == "11":
-            simulacion_fraude(admin_id)
+            ver_todas_las_acciones_admin(admin_id)
         elif opcion == "12":
-            gestion_bloqueos(admin_id)
+            ver_acciones_de_admin(admin_id)
         elif opcion == "13":
             aprobacion_transacciones(admin_id)
         elif opcion == "14":
-            cumplimiento_regulatorio(admin_id)
+            break
         elif opcion == "15":
             identificacion_patrones(admin_id)
         elif opcion == "16":
