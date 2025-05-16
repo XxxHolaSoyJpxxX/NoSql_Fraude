@@ -233,6 +233,29 @@ def ver_transacciones_por_timestamp(email):
     except Exception as e:
         print(f"Error al consultar Cassandra: {e}")
 
+def obterner_trsaccion_por_id(id_transaccion):
+    print(id_transaccion)
+    session = get_cassandra_session()
+    query = "SELECT * FROM transaccionestimesstap WHERE id_transaccion = %s ALLOW FILTERING"
+    rows = session.execute(query, (id_transaccion,))
+    transacciones = []
+    for row in rows:
+        transacciones.append({
+            "id_transaccion": row.id_transaccion,
+            "account_id": row.account_id,
+            "timestamp": row.timestamp,
+            "to_account": row.to_account,
+            "amount": row.amount,
+            "status": row.status,
+            "lat": row.lat,
+            "lon": row.lon
+        })
+    if not transacciones:
+        print("⚠️ No se encontró la transacción con el ID proporcionado.")
+        return None
+    else:
+        return transacciones[0]
+    # Si se encuentra la transacción, devolverla
 
 def obtener_todas_las_transacciones():
     session = get_cassandra_session()
@@ -287,7 +310,25 @@ def mostrar_todas_transacciones(admin_id):
         f"{len(transacciones)} transacciones listadas"
     )
 
+def obtener_transacciones_por_cuenta(account_id):
+    session = get_cassandra_session()
+    query = "SELECT * FROM transaccionestimesstap WHERE account_id = %s ALLOW FILTERING"
+    rows = session.execute(query, (account_id,))
 
+    transacciones = []
+    for row in rows:
+        transacciones.append({
+            "account_id": row.account_id,
+            "timestamp": row.timestamp,
+            "id_transaccion": row.id_transaccion,
+            "to_account": row.to_account,
+            "amount": row.amount,
+            "status": row.status,
+            "lat": row.lat,
+            "lon": row.lon
+        })
+    transacciones.sort(key=lambda t: t["timestamp"], reverse=True)
+    return transacciones
 
 def crear_tabla_acciones_admin_por_admin():
     session = get_cassandra_session()
@@ -405,7 +446,88 @@ def ver_todas_las_acciones_admin(admin_id):
         ))
 
         registrar_accion_admin(admin_id, 'Historial de administradores', 'Vio el historial de administradores')
-
+def detectar_transacciones_duplicadas(window_minutes=30, amount_threshold=0.01):
+    """
+    Detecta transacciones duplicadas dentro de una ventana de tiempo específica.
+    
+    Parameters:
+    - window_minutes: Ventana de tiempo en minutos para buscar duplicados (default: 30 min)
+    - amount_threshold: Tolerancia para considerar montos como iguales (default: 0.01)
+    
+    Returns:
+    - Lista de grupos de transacciones que parecen duplicadas
+    """
+    session = get_cassandra_session()
+    
+    # Obtenemos todas las transacciones recientes
+    time_window = datetime.now() - timedelta(minutes=window_minutes)
+    query = """
+    SELECT account_id, timestamp, id_transaccion, to_account, amount, status, lat, lon
+    FROM transaccionestimesstap
+    WHERE timestamp > %s
+    ALLOW FILTERING
+    """
+    
+    rows = session.execute(query, (time_window,))
+    
+    # Convertimos los resultados a una lista para procesamiento
+    transacciones = []
+    for row in rows:
+        transacciones.append({
+            "account_id": row.account_id,
+            "timestamp": row.timestamp,
+            "id_transaccion": row.id_transaccion,
+            "to_account": row.to_account,
+            "amount": row.amount,
+            "status": row.status,
+            "lat": row.lat,
+            "lon": row.lon
+        })
+    
+    # Ordenamos por cuenta, cuenta destino y monto para facilitar detección
+    transacciones.sort(key=lambda t: (t["account_id"], t["to_account"], t["amount"]))
+    
+    # Agrupamos transacciones potencialmente duplicadas
+    duplicados = []
+    grupo_actual = []
+    
+    for i in range(len(transacciones)):
+        if i == 0:
+            grupo_actual = [transacciones[i]]
+            continue
+            
+        prev_tx = transacciones[i-1]
+        curr_tx = transacciones[i]
+        
+        # Verificamos si la transacción actual es similar a la anterior
+        same_accounts = (prev_tx["account_id"] == curr_tx["account_id"] and 
+                         prev_tx["to_account"] == curr_tx["to_account"])
+        
+        same_amount = abs(prev_tx["amount"] - curr_tx["amount"]) <= amount_threshold
+        
+        time_diff = (curr_tx["timestamp"] - prev_tx["timestamp"]).total_seconds()
+        short_time = time_diff < (window_minutes * 60)
+        
+        if same_accounts and same_amount and short_time:
+            # Si ya tenemos un grupo, añadimos la transacción actual
+            if grupo_actual and grupo_actual[0]["account_id"] == curr_tx["account_id"]:
+                grupo_actual.append(curr_tx)
+            else:
+                # Si es el inicio de un nuevo grupo, primero guardamos el anterior si tenía duplicados
+                if len(grupo_actual) > 1:
+                    duplicados.append(grupo_actual)
+                grupo_actual = [prev_tx, curr_tx]
+        else:
+            # No hay coincidencia, guardamos el grupo anterior si tenía duplicados
+            if len(grupo_actual) > 1:
+                duplicados.append(grupo_actual)
+            grupo_actual = [curr_tx]
+    
+    # Verificamos el último grupo
+    if len(grupo_actual) > 1:
+        duplicados.append(grupo_actual)
+    
+    return duplicados
 def ver_acciones_de_admin(admin_id):
     session = get_cassandra_session()
     

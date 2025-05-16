@@ -96,6 +96,22 @@ def crear_cuenta_mongo(usuario_id, lat,lon):
     db.cuentas.insert_one(cuenta)
     return account_id
 
+def obter_ubicacion_cuenta(email_usuario):
+    """
+    Obtiene la ubicación de una cuenta en MongoDB
+    """
+    db = get_mongo_db()
+    cuenta = db.usuarios.find_one({"email": email_usuario})
+    print(cuenta)
+    if cuenta:
+        ubicacion = cuenta.get("ubicacion")
+        print(ubicacion)
+        return {
+            "lat": ubicacion.get("lat"),
+            "lon": ubicacion.get("lon")
+        }
+    else :
+        return "No se encontró la cuenta en MongoDB."
 
 def actualizar_balances_en_mongo(account_id_origen, account_id_destino, monto):
     db = get_mongo_db()
@@ -223,3 +239,19 @@ def desbloquear_cuenta(admin_id):
         print(" No se pudo desbloquear la cuenta (no encontrada en MongoDB).")
 
     registrar_accion_admin(admin_id, f'Desbloqueo cuenta {account_id}', 'Desbloqueo de cuenta')
+
+def actualizar_balce_cuenta(email, monto):
+    account_id = obtener_cuenta_por_email(email)
+    db = get_mongo_db()
+    cuenta = db.cuentas.find_one({"account_id": account_id})
+    if not cuenta:
+        print(" Cuenta no encontrada en MongoDB.")
+        return
+  
+    db.cuentas.update_one(
+        {"account_id": account_id},
+        {"$inc": {"balance": +monto}}
+    )
+    nuevo_balance = db.cuentas.find_one({"account_id": account_id})['balance']
+    print(f" El nuevo balance de la cuenta es: {nuevo_balance}")
+        
