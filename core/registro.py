@@ -9,6 +9,15 @@ from datetime import datetime
 import re
 from db.Dgraph.dgraph import agregar_usuario
 
+PAISES = {
+    "1": {"nombre": "México", "codigo": "MX", "coordenadas": {"lat": 23.6345, "lon": -102.5528}},
+    "2": {"nombre": "Estados Unidos", "codigo": "USA", "coordenadas": {"lat": 37.0902, "lon": -95.7129}},
+    "3": {"nombre": "Argentina", "codigo": "ARG", "coordenadas": {"lat": -38.4161, "lon": -63.6167}},
+    "4": {"nombre": "España", "codigo": "ESP", "coordenadas": {"lat": 40.4637, "lon": -3.7492}},
+    "5": {"nombre": "Canadá", "codigo": "CAN", "coordenadas": {"lat": 56.1304, "lon": -106.3468}}
+}
+
+
 def validar_email(email):
     """
     Valida el formato del correo electrónico
@@ -42,14 +51,27 @@ def registrar_usuario():
     print("\n=== Registro de Usuario ===")
     usuario_id = input("ID de usuario (único): ")
     nombre = input("Nombre completo: ")
-    
+
+    # Selección de país
+    while True:
+        print("\nSelecciona tu país:")
+        for key, value in PAISES.items():
+            print(f"{key}. {value['nombre']}")
+
+        pais_opcion = input("Opción (1-5): ").strip()
+
+        if pais_opcion in PAISES:
+            pais_info = PAISES[pais_opcion]
+            break
+        print(" Opción inválida. Intenta nuevamente.")
+
     # Validar email
     while True:
         email = input("Correo electrónico: ")
         if validar_email(email):
             break
         print(" Formato de correo electrónico inválido. Intenta nuevamente.")
-    
+
     # Validar contraseña
     while True:
         password = input("Crea una contraseña (mín. 8 caracteres, incluir mayúsculas, minúsculas y números): ")
@@ -57,7 +79,7 @@ def registrar_usuario():
         if valido:
             break
         print(f" {mensaje}. Intenta nuevamente.")
-    
+
     # Confirmar contraseña
     while True:
         confirmacion = input("Confirma tu contraseña: ")
@@ -70,6 +92,11 @@ def registrar_usuario():
         "nombre": nombre,
         "email": email,
         "password": password,
+        "pais": pais_info["codigo"],
+        "ubicacion": {
+            "lat": pais_info["coordenadas"]["lat"],
+            "lon": pais_info["coordenadas"]["lon"]
+        },
         "authentication_methods": ["email", "sms"],
         "registered_at": datetime.now().isoformat(),
         "last_login": None,
@@ -79,11 +106,13 @@ def registrar_usuario():
     }
 
     if crear_usuario(usuario):
-        account_id = crear_cuenta_mongo(email)
+        account_id = crear_cuenta_mongo(usuario_id, pais_info["coordenadas"]["lat"],pais_info["coordenadas"]["lon"])
         print(agregar_usuario(email, account_id))
-        print("Usuario registrado correctamente.")
+        print(" Usuario registrado correctamente.")
     else:
-        print("Error: El usuario ya existe.")
+        print(" Error: El usuario ya existe.")
+
+
 
 def login_usuario():
     """
@@ -179,6 +208,6 @@ def login_admin():
     if admin:
         print(f"Acceso autorizado. Bienvenido, {admin['nombre']} (ID: {admin['usuario_id']})")
         actualizar_last_login(admin["usuario_id"])
-        menu_admin()
+        menu_admin(admin["usuario_id"])
     else:
         print("Acceso denegado. Verifica tus credenciales.")
