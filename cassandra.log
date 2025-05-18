@@ -830,3 +830,236 @@
 2025-05-16 09:32:56,234 [INFO] db.Cassandra.cassandra: Connecting to Cluster
 2025-05-16 09:37:16,932 [INFO] db.Cassandra.cassandra: Connecting to Cluster
 2025-05-16 09:37:21,217 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:04:32,693 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:04:37,081 [INFO] db.Cassandra.cassandra: Creating keyspace: transacciones with replication factor 1
+2025-05-18 14:04:37,647 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:04:42,718 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:04:48,199 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:04:53,454 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:09:56,410 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:10:00,854 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:10:06,639 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:10:12,449 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:10:18,264 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:17,909 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:23,614 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:29,367 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:35,293 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:40,860 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:46,627 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:52,410 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:13:58,119 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:14:03,911 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:21,145 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:25,586 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:31,309 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:37,171 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:42,722 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:48,472 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:54,188 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:28:59,860 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:29:05,549 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:09,132 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:13,656 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:19,365 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:25,162 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:30,614 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:36,229 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:41,946 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:47,588 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:53,274 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:31:59,046 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:53:24,237 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:53:28,665 [INFO] db.Cassandra.cassandra: Creating keyspace: transacciones with replication factor 1
+2025-05-18 14:54:17,499 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:55:51,058 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:56:45,941 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:56:50,751 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:56:56,291 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:01,781 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:07,202 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:20,285 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:25,287 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:31,118 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 14:57:37,134 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:26:34,430 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:26:38,939 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:26:44,747 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:26:50,577 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:26:56,392 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:27:12,388 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:27:17,481 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:27:23,329 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:27:29,109 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:28:55,230 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:28:59,730 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:29:05,502 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:29:11,313 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:28,894 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:33,423 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:39,225 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:45,841 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:50,366 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:31:56,204 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:01,997 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:08,058 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:13,175 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:25,280 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:31,111 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:36,944 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:42,739 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:48,750 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:32:54,368 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:00,159 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:06,009 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:11,743 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:17,557 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:39,168 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:44,652 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:50,396 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:33:56,178 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:02,128 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:07,680 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:13,421 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:19,195 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:24,874 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:34:30,651 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:09,178 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:14,393 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:20,061 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:25,745 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:31,645 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:37,143 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:42,829 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:48,540 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:54,175 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:35:59,887 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:36:05,685 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:41:55,377 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:41:59,885 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:05,724 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:11,598 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:17,430 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:23,278 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:34,623 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:39,629 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:45,461 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:51,304 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:42:57,291 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:02,910 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:08,682 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:14,547 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:20,285 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:26,083 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:43:31,960 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:13,686 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:18,210 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:24,025 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:29,860 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:35,683 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:45:41,544 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:00,247 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:05,665 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:11,485 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:17,255 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:23,231 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:28,886 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:34,670 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:40,535 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:46,249 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:46:52,050 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:48:48,643 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:48:50,215 [ERROR] cassandra.cluster: Control connection failed to connect, shutting down Cluster:
+Traceback (most recent call last):
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 1740, in connect
+    self.control_connection.connect()
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3543, in connect
+    self._set_new_connection(self._reconnect_internal())
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3588, in _reconnect_internal
+    raise NoHostAvailable("Unable to connect to any servers", errors)
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:48:50,325 [ERROR] db.Cassandra.cassandra: Error connecting to Cassandra: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:49:00,915 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:49:02,490 [ERROR] cassandra.cluster: Control connection failed to connect, shutting down Cluster:
+Traceback (most recent call last):
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 1740, in connect
+    self.control_connection.connect()
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3543, in connect
+    self._set_new_connection(self._reconnect_internal())
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3588, in _reconnect_internal
+    raise NoHostAvailable("Unable to connect to any servers", errors)
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:49:02,598 [ERROR] db.Cassandra.cassandra: Error connecting to Cassandra: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:49:06,585 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:49:08,189 [ERROR] cassandra.cluster: Control connection failed to connect, shutting down Cluster:
+Traceback (most recent call last):
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 1740, in connect
+    self.control_connection.connect()
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3543, in connect
+    self._set_new_connection(self._reconnect_internal())
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3588, in _reconnect_internal
+    raise NoHostAvailable("Unable to connect to any servers", errors)
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed'), '127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed')})
+2025-05-18 15:49:08,300 [ERROR] db.Cassandra.cassandra: Error connecting to Cassandra: ('Unable to connect to any servers', {'::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed'), '127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed')})
+2025-05-18 15:49:29,333 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:49:30,920 [ERROR] cassandra.cluster: Control connection failed to connect, shutting down Cluster:
+Traceback (most recent call last):
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 1740, in connect
+    self.control_connection.connect()
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3543, in connect
+    self._set_new_connection(self._reconnect_internal())
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3588, in _reconnect_internal
+    raise NoHostAvailable("Unable to connect to any servers", errors)
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed'), '127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed')})
+2025-05-18 15:49:31,027 [ERROR] db.Cassandra.cassandra: Error connecting to Cassandra: ('Unable to connect to any servers', {'::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed'), '127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed')})
+2025-05-18 15:49:43,431 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:49:45,006 [ERROR] cassandra.cluster: Control connection failed to connect, shutting down Cluster:
+Traceback (most recent call last):
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 1740, in connect
+    self.control_connection.connect()
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3543, in connect
+    self._set_new_connection(self._reconnect_internal())
+  File "C:\Users\Jp\Documents\Programacion\NoSql_Fraude\venv\lib\site-packages\cassandra\cluster.py", line 3588, in _reconnect_internal
+    raise NoHostAvailable("Unable to connect to any servers", errors)
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:49:45,114 [ERROR] db.Cassandra.cassandra: Error connecting to Cassandra: ('Unable to connect to any servers', {'127.0.0.1:9042': ConnectionShutdown('Connection to 127.0.0.1:9042 was closed'), '::1:9042': ConnectionShutdown('Connection to ::1:9042 was closed')})
+2025-05-18 15:59:08,981 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:59:13,383 [INFO] db.Cassandra.cassandra: Creating keyspace: transacciones with replication factor 1
+2025-05-18 15:59:13,774 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:59:18,979 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:59:24,487 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:59:29,871 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 15:59:35,117 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:13:39,884 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:13:45,096 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:13:50,835 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:13:56,641 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:02,582 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:08,155 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:13,911 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:19,763 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:25,504 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:31,345 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:53,145 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:14:58,399 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:04,163 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:09,927 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:15,817 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:21,399 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:27,130 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:32,940 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:38,591 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:15:44,282 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:04,277 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:09,523 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:15,229 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:20,942 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:26,851 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:32,358 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:38,035 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:43,755 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:49,373 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:16:55,026 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:17:00,792 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:17:17,214 [INFO] db.Cassandra.cassandra: Connecting to Cluster
+2025-05-18 16:18:02,141 [INFO] db.Cassandra.cassandra: Connecting to Cluster

@@ -69,7 +69,7 @@ def crear_tabla_transacciones_timestap():
     status text,
     lat double,
     lon double,
-    PRIMARY KEY (account_id, timestamp)
+    PRIMARY KEY (account_id,timestamp,id_transaccion)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
     """
     session.execute(query)
@@ -86,7 +86,7 @@ def crear_tabla_transacciones_amount():
     status text,
     lat double,
     lon double,
-    PRIMARY KEY (account_id, amount)
+    PRIMARY KEY (account_id, amount,id_transaccion)
 ) WITH CLUSTERING ORDER BY (amount DESC);
     """
     session.execute(query)
@@ -103,12 +103,30 @@ def crear_tabla_transacciones_status():
     status text,
     lat double,
     lon double,
-    PRIMARY KEY (account_id, status)
+    PRIMARY KEY (account_id, status,id_transaccion)
 ) WITH CLUSTERING ORDER BY (status DESC);
     """
     session.execute(query)
 
-#Insersion de datos:
+def crear_tabla_transaccion():
+    session = get_cassandra_session()
+    query = """
+    CREATE TABLE IF NOT EXISTS transaccion (
+    account_id text,
+    timestamp timestamp,
+    id_transaccion uuid,
+    to_account text,
+    amount double,
+    status text,
+    lat double,
+    lon double,
+    PRIMARY KEY (id_transaccion)
+) 
+    """
+    session.execute(query)
+# ─────────────────────────────
+# INSERCIONES EN TABLAS
+# ─────────────────────────────
 # Función para insertar transacción en tabla con clustering por timestamp
 def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction, lat, lon):
     session = get_cassandra_session()
@@ -128,8 +146,6 @@ def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction
         lon
     ))
     return " Transacción insertada en transaccionestimesstap"
-
-
 
 def insertar_transaccion_amount(account_id, to_account, amount, id_transaction, lat, lon):
     session = get_cassandra_session()
@@ -169,7 +185,28 @@ def insertar_transaccion_status(account_id, to_account, amount, id_transaction, 
     ))
     return " Transacción insertada en transacciones_por_status"
 
+def insertar_transaccion(account_id, to_account, amount, id_transaction, lat, lon):
+    session = get_cassandra_session()
+    query = """
+    INSERT INTO transaccion (
+        account_id, timestamp, id_transaccion, to_account, amount, status, lat, lon
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    session.execute(query, (
+        account_id,
+        datetime.now(),
+        id_transaction,
+        to_account,
+        amount,
+        'pendiente',
+        lat,
+        lon,
+    ))
+    return " Transacción insertada en transaccion"
 
+# ─────────────────────────────
+# QUERIES EN TABLAS
+# ─────────────────────────────
 
 def ver_transacciones_por_amount(email):
     # Obtener account_id desde Dgraph
@@ -236,7 +273,7 @@ def ver_transacciones_por_timestamp(email):
 def obterner_trsaccion_por_id(id_transaccion):
     print(id_transaccion)
     session = get_cassandra_session()
-    query = "SELECT * FROM transaccionestimesstap WHERE id_transaccion = %s ALLOW FILTERING"
+    query = "SELECT * FROM transaccion WHERE id_transaccion = %s"
     rows = session.execute(query, (id_transaccion,))
     transacciones = []
     for row in rows:
@@ -330,6 +367,71 @@ def obtener_transacciones_por_cuenta(account_id):
     transacciones.sort(key=lambda t: t["timestamp"], reverse=True)
     return transacciones
 
+def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
+    session = get_cassandra_session()
+
+    # Obtener el account_id y otros datos necesarios de la tabla principal
+    query = "SELECT account_id, timestamp, amount, status FROM transaccion WHERE id_transaccion = %s"
+    rows = session.execute(query, (id_transaccion,))
+    
+    if not rows:
+        return f"⚠️ No se encontró la transacción con ID {id_transaccion}."
+    
+    # Extraer los valores necesarios
+    row = rows[0]
+    account_id = row.account_id
+    timestamp = row.timestamp
+    amount = row.amount
+    old_status = row.status
+
+    # Actualizar la tabla principal
+    query = """
+    UPDATE transaccion
+    SET status = %s
+    WHERE id_transaccion = %s
+    """
+    session.execute(query, (nuevo_estado, id_transaccion))
+
+    # Actualizar la tabla transaccionestimesstap
+    query = """
+    UPDATE transaccionestimesstap
+    SET status = %s
+    WHERE account_id = %s AND timestamp = %s AND id_transaccion = %s
+    """
+    session.execute(query, (nuevo_estado, account_id, timestamp, id_transaccion))
+
+    # Actualizar la tabla transacciones_por_amount
+    query = """
+    UPDATE transacciones_por_amount
+    SET status = %s
+    WHERE account_id = %s AND amount = %s AND id_transaccion = %s
+    """
+    session.execute(query, (nuevo_estado, account_id, amount, id_transaccion))
+
+    # Manejar la tabla transacciones_por_status
+    # Paso 1: Eliminar el registro antiguo
+    if old_status:
+        delete_query = """
+        DELETE FROM transacciones_por_status
+        WHERE account_id = %s AND status = %s AND id_transaccion = %s
+        """
+        session.execute(delete_query, (account_id, old_status, id_transaccion))
+    
+    # Paso 2: Insertar el nuevo registro
+    insert_query = """
+    INSERT INTO transacciones_por_status (account_id, status, id_transaccion, timestamp, amount, lat, lon)
+    VALUES (%s, %s, %s, %s, %s, NULL, NULL)
+    """
+    session.execute(insert_query, (account_id, nuevo_estado, id_transaccion, timestamp, amount))
+
+    return f"Estado de la transacción {id_transaccion} actualizado a '{nuevo_estado}'"
+
+
+
+# ─────────────────────────────
+# CREACIÓN DE TABLAS ADMINISTRADOR
+# ─────────────────────────────
+
 def crear_tabla_acciones_admin_por_admin():
     session = get_cassandra_session()
     query = """
@@ -359,8 +461,6 @@ def crear_tabla_acciones_admin_global():
     """
     session.execute(query)
 
-
-
 def registrar_accion_admin(admin_id, accion, detalle=""):
     session = get_cassandra_session()
     now = datetime.now()
@@ -386,46 +486,6 @@ def registrar_accion_admin(admin_id, accion, detalle=""):
         "global", now, accion_id, admin_id, accion, detalle
     ))
 
-
-def ver_todas_las_acciones_admin():
-    session = get_cassandra_session()
-    query = "SELECT * FROM acciones_admin_global WHERE accion_global = 'global'"
-    rows = session.execute(query)
-
-    acciones = sorted(rows, key=lambda row: row.timestamp, reverse=True)
-
-    print("\n=== Historial de Acciones (Global) ===")
-    print("{:<36} {:<20} {:<25} {:<50}".format("Accion ID", "Admin ID", "Fecha", "Acción / Detalle"))
-    print("-" * 140)
-
-    for a in acciones:
-        print("{:<36} {:<20} {:<25} {:<50}".format(
-            str(a.accion_id),
-            a.admin_id,
-            a.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            f"{a.accion} - {a.detalle}"
-        ))
-
-
-def ver_acciones_de_admin(admin_id):
-    session = get_cassandra_session()
-    query = "SELECT * FROM acciones_admin_por_admin WHERE admin_id = %s"
-    rows = session.execute(query, (admin_id,))
-
-    acciones = sorted(rows, key=lambda row: row.timestamp, reverse=True)
-
-    print(f"\n=== Historial del Admin: {admin_id} ===")
-    print("{:<36} {:<25} {:<50}".format("Accion ID", "Fecha", "Acción / Detalle"))
-    print("-" * 120)
-
-    for a in acciones:
-        print("{:<36} {:<25} {:<50}".format(
-            str(a.accion_id),
-            a.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            f"{a.accion} - {a.detalle}"
-        ))
-
-
 def ver_todas_las_acciones_admin(admin_id):
     session = get_cassandra_session()
     query = "SELECT * FROM acciones_admin_global WHERE accion_global = 'global'"
@@ -446,88 +506,7 @@ def ver_todas_las_acciones_admin(admin_id):
         ))
 
         registrar_accion_admin(admin_id, 'Historial de administradores', 'Vio el historial de administradores')
-def detectar_transacciones_duplicadas(window_minutes=30, amount_threshold=0.01):
-    """
-    Detecta transacciones duplicadas dentro de una ventana de tiempo específica.
-    
-    Parameters:
-    - window_minutes: Ventana de tiempo en minutos para buscar duplicados (default: 30 min)
-    - amount_threshold: Tolerancia para considerar montos como iguales (default: 0.01)
-    
-    Returns:
-    - Lista de grupos de transacciones que parecen duplicadas
-    """
-    session = get_cassandra_session()
-    
-    # Obtenemos todas las transacciones recientes
-    time_window = datetime.now() - timedelta(minutes=window_minutes)
-    query = """
-    SELECT account_id, timestamp, id_transaccion, to_account, amount, status, lat, lon
-    FROM transaccionestimesstap
-    WHERE timestamp > %s
-    ALLOW FILTERING
-    """
-    
-    rows = session.execute(query, (time_window,))
-    
-    # Convertimos los resultados a una lista para procesamiento
-    transacciones = []
-    for row in rows:
-        transacciones.append({
-            "account_id": row.account_id,
-            "timestamp": row.timestamp,
-            "id_transaccion": row.id_transaccion,
-            "to_account": row.to_account,
-            "amount": row.amount,
-            "status": row.status,
-            "lat": row.lat,
-            "lon": row.lon
-        })
-    
-    # Ordenamos por cuenta, cuenta destino y monto para facilitar detección
-    transacciones.sort(key=lambda t: (t["account_id"], t["to_account"], t["amount"]))
-    
-    # Agrupamos transacciones potencialmente duplicadas
-    duplicados = []
-    grupo_actual = []
-    
-    for i in range(len(transacciones)):
-        if i == 0:
-            grupo_actual = [transacciones[i]]
-            continue
-            
-        prev_tx = transacciones[i-1]
-        curr_tx = transacciones[i]
-        
-        # Verificamos si la transacción actual es similar a la anterior
-        same_accounts = (prev_tx["account_id"] == curr_tx["account_id"] and 
-                         prev_tx["to_account"] == curr_tx["to_account"])
-        
-        same_amount = abs(prev_tx["amount"] - curr_tx["amount"]) <= amount_threshold
-        
-        time_diff = (curr_tx["timestamp"] - prev_tx["timestamp"]).total_seconds()
-        short_time = time_diff < (window_minutes * 60)
-        
-        if same_accounts and same_amount and short_time:
-            # Si ya tenemos un grupo, añadimos la transacción actual
-            if grupo_actual and grupo_actual[0]["account_id"] == curr_tx["account_id"]:
-                grupo_actual.append(curr_tx)
-            else:
-                # Si es el inicio de un nuevo grupo, primero guardamos el anterior si tenía duplicados
-                if len(grupo_actual) > 1:
-                    duplicados.append(grupo_actual)
-                grupo_actual = [prev_tx, curr_tx]
-        else:
-            # No hay coincidencia, guardamos el grupo anterior si tenía duplicados
-            if len(grupo_actual) > 1:
-                duplicados.append(grupo_actual)
-            grupo_actual = [curr_tx]
-    
-    # Verificamos el último grupo
-    if len(grupo_actual) > 1:
-        duplicados.append(grupo_actual)
-    
-    return duplicados
+
 def ver_acciones_de_admin(admin_id):
     session = get_cassandra_session()
     

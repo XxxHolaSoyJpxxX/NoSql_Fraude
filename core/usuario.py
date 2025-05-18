@@ -42,7 +42,7 @@ def menu_usuario(email):
             monto = float(input("Monto a transferir: "))
             actualizar_balce_cuenta(email, monto)
             print("Ingresando dinero...")
-            break
+            
         elif opcion == "8":
             print("Saliendo del menú...")
             break

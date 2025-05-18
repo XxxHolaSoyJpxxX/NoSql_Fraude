@@ -36,6 +36,7 @@ def definir_schema():
         to_account
         fue_reportada
         reporte_id
+        location
     }
 
     type ReporteFraude {
@@ -56,7 +57,8 @@ def definir_schema():
     transaction_id: string @index(exact) .
     from_account: uid .
     to_account: uid .
-    fue_reportada: bool .
+    fue_reportada: bool .   
+    location: geo @index(geo) .
 
 
     reporte_id: string @index(exact) .
@@ -156,8 +158,7 @@ def obtener_uid_cuenta(account_id):
     finally:
         txn.discard()
 
-
-def registrar_transaccion_dgraph(account_from_uid, account_to_uid, id_transaction):
+def registrar_transaccion_dgraph(account_from_uid, account_to_uid, id_transaction, latitude, longitude):
     client = get_dgraph_client()
     txn = client.txn()
     try:
@@ -165,14 +166,14 @@ def registrar_transaccion_dgraph(account_from_uid, account_to_uid, id_transactio
             "dgraph.type": "Transaccion",
             "transaction_id": str(id_transaction),
             "from_account": {"uid": account_from_uid},
-            "to_account": {"uid": account_to_uid}
+            "to_account": {"uid": account_to_uid},
+            "location": {"type": "Point", "coordinates": [float(latitude), float(longitude)]},
         }
         txn.mutate(set_obj=transaccion)
         txn.commit()
         return "✅ Transacción registrada en Dgraph"
     finally:
         txn.discard()
-
 
 def obtener_uid_usuario_por_email(email):
     client = get_dgraph_client()
@@ -197,7 +198,6 @@ def obtener_uid_usuario_por_email(email):
     finally:
         txn.discard()
 
-
 def obtener_cuenta_completa(uid):
     client = get_dgraph_client()
     txn = client.txn(read_only=True)
@@ -207,10 +207,7 @@ def obtener_cuenta_completa(uid):
         cuenta(func: uid($id)) {
             uid
             account_id
-            owned_by {
-                uid
-                email
-            }
+            from_account
             # Opcional: incluir transacciones si las necesitas
             # from_transactions { transaction_id }
             # to_transactions { transaction_id }
@@ -225,5 +222,28 @@ def obtener_cuenta_completa(uid):
         if cuentas:
             return cuentas[0]
         return None
+    finally:
+        txn.discard()
+
+def cerca_de_ubicacion(latitud, longitud, radio):
+    client = get_dgraph_client()
+    txn = client.txn(read_only=True)
+
+    query = """
+    query cercaDeUbicacion($lat: float, $lon: float, $radio: float) {
+        cuentas(func: near(location, [$lat, $lon], $radio)) {
+            uid
+            transaction_id
+            from_account{
+			    account_id
+            }
+        }
+    }
+    """
+
+    try:
+        res = txn.query(query, variables={"$lat": latitud, "$lon": longitud, "$radio": radio})
+        data = json.loads(res.json)
+        return data.get("cuentas", [])
     finally:
         txn.discard()

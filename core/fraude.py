@@ -11,8 +11,8 @@ from datetime import timedelta
 #///////////////////
 # Reporte de Usuario
 #///////////////////
-def reportar_fraude_auto(email_usuario, tipo, id_transaccion):
-    resultado = reportar_transaccion_fraudulenta(id_transaccion, email_usuario, tipo)
+def reportar_fraude_auto(email_usuario, tipo, id_transaccion,motivo="Reporte automático"):
+    resultado = reportar_transaccion_fraudulenta(id_transaccion, email_usuario,motivo,tipo)
     print(resultado)
 
 def reportar_transaccion(email_usuario):
@@ -25,12 +25,12 @@ def reportar_transaccion(email_usuario):
     # Pedir datos del reporte
     id_transaccion = input("\nIngresa el ID de la transacción que deseas reportar: ").strip()
     motivo = input("Describe el motivo del reporte: ").strip()
-
+    tipo = "reporte de usuario"
     # Registrar reporte
-    resultado = reportar_transaccion_fraudulenta(id_transaccion, email_usuario, motivo)
+    resultado = reportar_transaccion_fraudulenta(id_transaccion, email_usuario,motivo,tipo)
     print(resultado)
 
-def reportar_transaccion_fraudulenta(transaction_id, email_usuario, motivo):
+def reportar_transaccion_fraudulenta(transaction_id, email_usuario, motivo,tipo):
     client = get_dgraph_client()
     txn = None
     # Obtener UID del usuario (NO el account_id)
@@ -62,6 +62,7 @@ def reportar_transaccion_fraudulenta(transaction_id, email_usuario, motivo):
             "dgraph.type": "ReporteFraude",
             "reporte_id": str(uuid4()),
             "motivo": motivo,
+            "tipo": tipo,
             "fecha": datetime.now().isoformat(),
             "reportado_por": {"uid": usuario_uid},
             "transaccion_reportada": {"uid": transaccion_uid}

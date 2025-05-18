@@ -1,6 +1,6 @@
 from db.Dgraph.dgraph import obtener_cuenta_por_email, obtener_uid_cuenta, registrar_transaccion_dgraph
 from db.MongoDB.mongo import actualizar_balances_en_mongo, get_mongo_db, insertar_notificacion
-from db.Cassandra.cassandra import crear_tabla_transacciones_amount, crear_tabla_transacciones_status, crear_tabla_transacciones_timestap, insertar_transaccion_amount, insertar_transaccion_status, insertar_transaccion_timestap
+from db.Cassandra.cassandra import crear_tabla_transacciones_amount, crear_tabla_transacciones_status, crear_tabla_transacciones_timestap, insertar_transaccion_amount, insertar_transaccion_status, insertar_transaccion_timestap,actualizar_estado_transaccion,insertar_transaccion
 from uuid import uuid4
 from core.fraude import verificar_geolocalizacion, reportar_fraude_auto,detectar_duplicacion_transacciones,tiempo_entre_transacciones,detectar_gasto_inusual
 
@@ -45,6 +45,7 @@ def realizar_transaccion(email_origen):
         insertar_transaccion_timestap(id_origen, id_destino, monto, transaction_id, lat, lon)
         insertar_transaccion_amount(id_origen, id_destino, monto, transaction_id, lat, lon)
         insertar_transaccion_status(id_origen, id_destino, monto, transaction_id, lat, lon)
+        insertar_transaccion(id_origen, id_destino, monto, transaction_id, lat, lon)
 
         uid_origen = obtener_uid_cuenta(id_origen)
         uid_destino = obtener_uid_cuenta(id_destino)
@@ -53,7 +54,7 @@ def realizar_transaccion(email_origen):
             # Aquí podrías agregar lógica para bloquear la cuenta o notificar al usuario.
         
         if uid_origen and uid_destino:
-            print(registrar_transaccion_dgraph(uid_origen, uid_destino, transaction_id))
+            print(registrar_transaccion_dgraph(uid_origen, uid_destino, transaction_id,lat, lon))
         else:
             print("No se pudo registrar la transacción en Dgraph (UIDs no encontrados).")
 
@@ -63,25 +64,25 @@ def realizar_transaccion(email_origen):
         else:
             print("Se detectó un posible fraude en la transacción. generado por reporte")
             reportar_fraude_auto(email_origen, "tipo: geolocalizacion", transaction_id)
-        
+            actualizar_estado_transaccion(transaction_id, "fraude")
         if not detectar_duplicacion_transacciones(transaction_id):
             print("No se detectó duplicación de transacciones.")
         else:
             print("Se detectó un posible fraude en la transacción. generado por duplicacion")
             reportar_fraude_auto(email_origen, "tipo: duplicado", transaction_id)
-            
+            actualizar_estado_transaccion(transaction_id, "fraude")
         if not tiempo_entre_transacciones(email_origen):
             print("No se detectó muchas iregularidades entre el timpo de transacciones.")
         else:
             print("Se detectó un posible fraude en la transacción. generado por tiempo entre transacciones")
             reportar_fraude_auto(email_origen, "tipo: tiempo", transaction_id)
-        
+            actualizar_estado_transaccion(transaction_id, "fraude")
         if not detectar_gasto_inusual(transaction_id):
             print("No se detectó gasto inusual en la transacción.")
         else:
             print("Se detectó un posible gasto inusual en la transacción. generado por gasto inusual")
             reportar_fraude_auto(email_origen, "tipo: gasto inusual", transaction_id)
-            
+            actualizar_estado_transaccion(transaction_id, "fraude")
         print("✅ Transacción completada.")
 
         insertar_notificacion(
