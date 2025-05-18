@@ -17,6 +17,32 @@ def get_mongo_db():
 # FUNCIONES DE GESTIÓN DE USUARIOS
 # ─────────────────────────────
 
+def crear_indices():
+    db = get_mongo_db()
+
+    # Usuarios
+    try:
+        db.usuarios.create_index("usuario_id", unique=True)
+        print(" Índice único en 'usuarios.usuario_id'")
+    except Exception as e:
+        print(f" Error al crear índice en 'usuario_id': {e}")
+
+    try:
+        db.usuarios.create_index("email", unique=True)
+        print(" Índice único en 'usuarios.email'")
+    except Exception as e:
+        print(f" Error al crear índice en 'email': {e}")
+
+    # Cuentas
+    db.cuentas.create_index("account_id", unique=True)
+    db.cuentas.create_index("usuario_id")
+    print(" Índices en colección 'cuentas'")
+
+    # Notificaciones
+    db.notificaciones.create_index("usuario_id")
+    db.notificaciones.create_index("fecha")
+    print(" Índices en colección 'notificaciones'")
+
 def crear_usuario(usuario):
     """
     Create a new user in the database
@@ -148,9 +174,25 @@ def insertar_notificacion(usuario_id, mensaje):
 
 def obtener_notificaciones(usuario_id):
     db = get_mongo_db()
+
+    pipeline = [
+        {"$match": {"usuario_id": usuario_id}},
+        {"$group": {
+            "_id": {"$substr": ["$fecha", 0, 10]},
+            "total": {"$sum": 1}
+        }},
+        {"$sort": {"_id": -1}},
+        {"$limit": 5}
+    ]
+    resumen = list(db.notificaciones.aggregate(pipeline))
+    print("Resumen de notificaciones por día (últimos 5):")
+    for dia in resumen:
+        print(f"{dia['_id']}: {dia['total']} notificaciones")
+
     return list(db.notificaciones.find({
         "usuario_id": usuario_id
     }).sort("fecha", -1))
+
 
 def eliminar_notificaciones(usuario_id):
     db = get_mongo_db()
@@ -183,6 +225,24 @@ def ver_cuenta(email):
     print(f"ID de Cuenta: {cuenta['account_id']}")
     print(f"Balance: ${cuenta['balance']:.2f}")
 
+    usuario_id = cuenta.get("usuario_id")
+    pipeline = [
+        {"$match": {"usuario_id": usuario_id}},
+        {
+            "$group": {
+                "_id": "$usuario_id",
+                "total_cuentas": {"$sum": 1},
+                "promedio_balance": {"$avg": "$balance"}
+            }
+        }
+    ]
+
+    resultado = list(db.cuentas.aggregate(pipeline))
+    if resultado:
+        print(f"Total de cuentas asociadas: {resultado[0]['total_cuentas']}")
+        print(f"Promedio de balance: ${resultado[0]['promedio_balance']:.2f}")
+
+
 
 def auditoria(admin_id):
     print("\n=== Auditoría de Usuario ===")
@@ -190,11 +250,27 @@ def auditoria(admin_id):
     ver_cuenta(email)
     ver_transacciones_por_timestamp(email)
 
+    # Agregación: total de notificaciones del usuario
+    db = get_mongo_db()
+    usuario = db.usuarios.find_one({"email": email})
+    if usuario:
+        usuario_id = usuario.get("usuario_id")
+        pipeline = [
+            {"$match": {"usuario_id": usuario_id}},
+            {"$group": {"_id": "$usuario_id", "total": {"$sum": 1}}}
+        ]
+        resultado = list(db.notificaciones.aggregate(pipeline))
+        total_notificaciones = resultado[0]["total"] if resultado else 0
+        print(f"Total de notificaciones del usuario: {total_notificaciones}")
+    else:
+        print("No se encontró el usuario en MongoDB para agregar estadísticas.")
+
     registrar_accion_admin(
         admin_id,
         "Auditoría de usuario",
         f"Cuenta auditada: {email}"
     )
+
 
 def bloquear_cuenta(admin_id):
     db = get_mongo_db()
@@ -216,7 +292,12 @@ def bloquear_cuenta(admin_id):
     else:
         print(" No se pudo bloquear la cuenta (no encontrada en MongoDB).")
 
+    # Agregación: total de cuentas bloqueadas
+    total_bloqueadas = db.cuentas.count_documents({"bloqueada": True})
+    print(f"Cuentas actualmente bloqueadas: {total_bloqueadas}")
+
     registrar_accion_admin(admin_id, f'Bloque cuenta {account_id}', 'Bloqueo de cuenta')
+
 
 def desbloquear_cuenta(admin_id):
     db = get_mongo_db()
@@ -238,7 +319,12 @@ def desbloquear_cuenta(admin_id):
     else:
         print(" No se pudo desbloquear la cuenta (no encontrada en MongoDB).")
 
+    # Agregación: total de cuentas bloqueadas después del cambio
+    total_bloqueadas = db.cuentas.count_documents({"bloqueada": True})
+    print(f"Cuentas actualmente bloqueadas: {total_bloqueadas}")
+
     registrar_accion_admin(admin_id, f'Desbloqueo cuenta {account_id}', 'Desbloqueo de cuenta')
+
 
 def actualizar_balce_cuenta(email, monto):
     account_id = obtener_cuenta_por_email(email)

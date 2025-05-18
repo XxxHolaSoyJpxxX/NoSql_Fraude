@@ -127,7 +127,7 @@ def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction
         lat,
         lon
     ))
-    return "✅ Transacción insertada en transaccionestimesstap"
+    return " Transacción insertada en transaccionestimesstap"
 
 
 
@@ -167,7 +167,7 @@ def insertar_transaccion_status(account_id, to_account, amount, id_transaction, 
         lat,
         lon
     ))
-    return "✅ Transacción insertada en transacciones_por_status"
+    return " Transacción insertada en transacciones_por_status"
 
 
 
@@ -175,7 +175,7 @@ def ver_transacciones_por_amount(email):
     # Obtener account_id desde Dgraph
     cuenta = obtener_cuenta_por_email(email)
     if not cuenta:
-        print("⚠️ Cuenta no encontrada para este correo.")
+        print(" Cuenta no encontrada para este correo.")
         return
 
     account_id = cuenta
@@ -206,7 +206,7 @@ def ver_transacciones_por_timestamp(email):
     # Obtener account_id desde Dgraph
     cuenta = obtener_cuenta_por_email(email)
     if not cuenta:
-        print("⚠️ Cuenta no encontrada para este correo.")
+        print(" Cuenta no encontrada para este correo.")
         return
 
     account_id = cuenta
@@ -259,7 +259,7 @@ def obterner_trsaccion_por_id(id_transaccion):
 
 def obtener_todas_las_transacciones():
     session = get_cassandra_session()
-    query = "SELECT * FROM transaccionestimesstap ALLOW FILTERING"
+    query = "SELECT * FROM transaccionestimesstap"
     rows = session.execute(query)
 
     transacciones = []
@@ -312,7 +312,7 @@ def mostrar_todas_transacciones(admin_id):
 
 def obtener_transacciones_por_cuenta(account_id):
     session = get_cassandra_session()
-    query = "SELECT * FROM transaccionestimesstap WHERE account_id = %s ALLOW FILTERING"
+    query = "SELECT * FROM transaccionestimesstap WHERE account_id = %s"
     rows = session.execute(query, (account_id,))
 
     transacciones = []

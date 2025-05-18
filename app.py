@@ -1,9 +1,11 @@
 from core.registro import registrar_admin, registrar_usuario, login_usuario, login_admin
 from db.Dgraph.dgraph import definir_schema
 from db.Cassandra.cassandra import crear_tabla_acciones_admin_global, crear_tabla_acciones_admin_por_admin, crear_tabla_transacciones_amount, crear_tabla_transacciones_status, crear_tabla_transacciones_timestap
+from db.MongoDB.mongo import crear_indices
 
 def main():
     definir_schema() 
+    crear_indices()
     crear_tabla_transacciones_timestap()
     crear_tabla_transacciones_status()
     crear_tabla_transacciones_amount()
