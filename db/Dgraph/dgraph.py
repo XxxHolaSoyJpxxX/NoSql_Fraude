@@ -247,3 +247,29 @@ def cerca_de_ubicacion(latitud, longitud, radio):
         return data.get("cuentas", [])
     finally:
         txn.discard()
+        
+def obtener_todos_los_reportes():
+    client = get_dgraph_client()
+    txn = client.txn(read_only=True)
+
+    query = """
+    {
+        reportes(func: type(ReporteFraude)) {
+            reporte_id
+            tipo
+            reportado_por {
+                email
+            }
+            transaccion_reportada{
+				transaction_id
+            }   
+        }
+    }
+    """
+
+    try:
+        res = txn.query(query)
+        data = json.loads(res.json)
+        return data.get("reportes", [])
+    finally:
+        txn.discard()

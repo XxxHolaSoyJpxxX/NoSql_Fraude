@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 import uuid
-from db.Dgraph.dgraph import get_dgraph_client, obtener_cuenta_por_email, obtener_uid_usuario_por_email
+from db.Dgraph.dgraph import obtener_todos_los_reportes,get_dgraph_client, obtener_cuenta_por_email, obtener_uid_usuario_por_email
 from db.MongoDB.mongo import get_mongo_db,obter_ubicacion_cuenta
 from db.Cassandra.cassandra import ver_transacciones_por_amount,obterner_trsaccion_por_id,obtener_transacciones_por_cuenta
 import json
@@ -121,14 +121,19 @@ def detectar_gasto_inusual(trasaccion_id):
         return False
     # Obtener todas las transacciones asociadas a la cuenta
     acount_trasacciones = obtener_transacciones_por_cuenta(account_id)
+    # Verificar si hay transacciones
     if not acount_trasacciones or len(acount_trasacciones) <= 1:
         print("No hay suficientes transacciones para calcular el promedio.")
         return False
-    # Excluir la transacción actual del cálculo del promedio
-    montos = [row["amount"] for row in acount_trasacciones if row["id_transaccion"] != trsaccion["id_transaccion"]]
+    montos = [
+    row["amount"]
+    for row in acount_trasacciones
+    if row["id_transaccion"] != trsaccion["id_transaccion"] and row["amount"] is not None
+    ]
     if not montos:
-        print("No hay otras transacciones para comparar.")
+        print("No hay montos válidos para comparar.")
         return False
+
     promedio = sum(montos) / len(montos)
     limite = promedio * 1.5
     if trsaccion["amount"] > limite:
@@ -167,25 +172,78 @@ def detectar_duplicacion_transacciones(trasaccion_id):
 
 def tiempo_entre_transacciones(email_usuario):
     account_id = obtener_cuenta_por_email(email_usuario)
-    # Obtener la cuenta del usuario
+
     acount_trasacciones = obtener_transacciones_por_cuenta(account_id)
     if not acount_trasacciones:
         print("No se encontraron transacciones para la cuenta.")
         return False
 
-    # Ordenar las transacciones por timestamp
     transacciones_ordenadas = sorted(acount_trasacciones, key=lambda x: x["timestamp"])
 
-    # Usar una ventana deslizante para contar transacciones en un intervalo de 5 minutos
     inicio = 0
     for fin in range(len(transacciones_ordenadas)):
         while (transacciones_ordenadas[fin]["timestamp"] - transacciones_ordenadas[inicio]["timestamp"]) > timedelta(minutes=5):
             inicio += 1
-        if (fin - inicio + 1) > 5:
-            print("Se detectaron más de 5 transacciones en menos de 5 minutos.")
+        if (fin - inicio + 1) > 3:
+            print("Se detectaron más de 3 transacciones en menos de 5 minutos.")
             return True
 
     return False
 
 
 
+def estadsitcas_fraude():
+    # Obtener todos los reportes de fraude
+    reportes = obtener_todos_los_reportes()
+    if not reportes:
+        print("No se encontraron reportes de fraude.")
+        return
+
+    # Contar el número de reportes por tipo
+    conteo_reportes = {}
+    for reporte in reportes:
+        tipo = reporte.get("tipo")
+        if tipo:
+            conteo_reportes[tipo] = conteo_reportes.get(tipo, 0) + 1
+
+    # Mostrar estadísticas
+    print("\n=== Estadísticas de Fraude ===")
+    for tipo, conteo in conteo_reportes.items():
+        print(f"{tipo}: {conteo} reportes")
+        
+def perfil_riesgo(cantidad):
+    reportes = obtener_todos_los_reportes()
+    if not reportes:
+        print("No se encontraron reportes de fraude.")
+        return
+
+    conteo_reportes_por_email = {}
+
+    for reporte in reportes:
+        email = reporte.get("reportado_por", {}).get("email")
+        if email:
+            conteo_reportes_por_email[email] = conteo_reportes_por_email.get(email, 0) + 1
+
+    conteo_ordenado = dict(sorted(conteo_reportes_por_email.items(), key=lambda item: item[1], reverse=True))
+    if cantidad == 0:
+        top = conteo_ordenado
+    else:
+        top = dict(list(conteo_ordenado.items())[:cantidad])
+
+    print("\n=== Perfiles de Riesgo ===")
+    print(top)
+
+def obtener_reportes_geograficos():
+    reportes = obtener_todos_los_reportes()
+    if not reportes:
+        print("No se encontraron reportes de fraude.")
+        return
+
+    reportes_geograficos = [reporte for reporte in reportes if reporte.get("tipo") == "geolocalizacion"]
+    if not reportes_geograficos:
+        print("No se encontraron reportes geográficos.")
+        return
+
+    print("\n=== Reportes Geográficos ===")
+    for reporte in reportes_geograficos:
+        print(reporte)

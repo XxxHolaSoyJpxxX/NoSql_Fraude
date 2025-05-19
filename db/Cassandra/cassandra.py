@@ -128,7 +128,7 @@ def crear_tabla_transaccion():
 # INSERCIONES EN TABLAS
 # ─────────────────────────────
 # Función para insertar transacción en tabla con clustering por timestamp
-def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction, lat, lon):
+def insertar_transaccion_timestap(account_id, to_account, amount, timestamp,id_transaction, lat, lon):
     session = get_cassandra_session()
     query = """
     INSERT INTO transaccionestimesstap (
@@ -137,7 +137,7 @@ def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction
     """
     session.execute(query, (
         account_id,
-        datetime.now(),
+        timestamp,
         id_transaction,
         to_account,
         amount,
@@ -147,7 +147,7 @@ def insertar_transaccion_timestap(account_id, to_account, amount, id_transaction
     ))
     return " Transacción insertada en transaccionestimesstap"
 
-def insertar_transaccion_amount(account_id, to_account, amount, id_transaction, lat, lon):
+def insertar_transaccion_amount(account_id, to_account, amount,timestamp ,id_transaction, lat, lon):
     session = get_cassandra_session()
     query = """
     INSERT INTO transacciones_por_amount (
@@ -156,7 +156,7 @@ def insertar_transaccion_amount(account_id, to_account, amount, id_transaction, 
     """
     session.execute(query, (
         account_id,
-        datetime.now(),
+        timestamp,
         id_transaction,
         to_account,
         amount,
@@ -166,7 +166,7 @@ def insertar_transaccion_amount(account_id, to_account, amount, id_transaction, 
     ))
     return "✅ Transacción insertada en transacciones_por_amount"
 
-def insertar_transaccion_status(account_id, to_account, amount, id_transaction, lat, lon):
+def insertar_transaccion_status(account_id, to_account, amount,timestamp, id_transaction, lat, lon):
     session = get_cassandra_session()
     query = """
     INSERT INTO transacciones_por_status (
@@ -175,7 +175,7 @@ def insertar_transaccion_status(account_id, to_account, amount, id_transaction, 
     """
     session.execute(query, (
         account_id,
-        datetime.now(),
+        timestamp,
         id_transaction,
         to_account,
         amount,
@@ -185,7 +185,7 @@ def insertar_transaccion_status(account_id, to_account, amount, id_transaction, 
     ))
     return " Transacción insertada en transacciones_por_status"
 
-def insertar_transaccion(account_id, to_account, amount, id_transaction, lat, lon):
+def insertar_transaccion(account_id, to_account, amount,timestamp, id_transaction, lat, lon):
     session = get_cassandra_session()
     query = """
     INSERT INTO transaccion (
@@ -194,7 +194,7 @@ def insertar_transaccion(account_id, to_account, amount, id_transaction, lat, lo
     """
     session.execute(query, (
         account_id,
-        datetime.now(),
+        timestamp,
         id_transaction,
         to_account,
         amount,
@@ -312,12 +312,13 @@ def obtener_todas_las_transacciones():
             "lon": row.lon
         })
 
-    transacciones.sort(key=lambda t: t["timestamp"], reverse=True)
+    
     return transacciones
+
 
 def mostrar_todas_transacciones(admin_id):
     transacciones = obtener_todas_las_transacciones()
-
+    print("raw transactions\n" + str(transacciones))
     if not transacciones:
         print("No hay transacciones registradas.")
         return
@@ -330,13 +331,13 @@ def mostrar_todas_transacciones(admin_id):
 
     for t in transacciones:
         print("{:<36} {:<10} {:<15} {:<10.2f} {:<10} {:<10} {:<25}".format(
-            str(t["id_transaccion"]),
-            t["account_id"],
-            t["to_account"],
-            t["amount"],
-            t["status"],
-            t["timestamp"].strftime("%H:%M:%S"),
-            f"({t['lat']}, {t['lon']})"
+        str(t["id_transaccion"]) if t["id_transaccion"] else "N/A",
+        t["account_id"] if t["account_id"] else "N/A",
+        t["to_account"] if t["to_account"] else "N/A",
+        t["amount"] if t["amount"] is not None else 0.0,  # Usar 0.0 si el monto es None
+        t["status"] if t["status"] else "N/A",
+        t["timestamp"].strftime("%H:%M:%S") if t["timestamp"] else "N/A",
+        f"({t['lat']}, {t['lon']})" if t["lat"] is not None and t["lon"] is not None else "(N/A, N/A)"
         ))
 
     print("\nTotal de transacciones:", len(transacciones))
@@ -346,6 +347,7 @@ def mostrar_todas_transacciones(admin_id):
         "Visualización de historial de transacciones",
         f"{len(transacciones)} transacciones listadas"
     )
+
 
 def obtener_transacciones_por_cuenta(account_id):
     session = get_cassandra_session()
@@ -364,27 +366,28 @@ def obtener_transacciones_por_cuenta(account_id):
             "lat": row.lat,
             "lon": row.lon
         })
-    transacciones.sort(key=lambda t: t["timestamp"], reverse=True)
+    if not transacciones:
+        print("⚠️ No se encontraron transacciones para la cuenta proporcionada.")
+        return None
+    else:
+        transacciones.sort(key=lambda t: t["timestamp"], reverse=True)
+    
     return transacciones
 
 def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
     session = get_cassandra_session()
 
-    # Obtener el account_id y otros datos necesarios de la tabla principal
-    query = "SELECT account_id, timestamp, amount, status FROM transaccion WHERE id_transaccion = %s"
-    rows = session.execute(query, (id_transaccion,))
+    row = obterner_trsaccion_por_id(id_transaccion)
     
-    if not rows:
-        return f"⚠️ No se encontró la transacción con ID {id_transaccion}."
-    
-    # Extraer los valores necesarios
-    row = rows[0]
-    account_id = row.account_id
-    timestamp = row.timestamp
-    amount = row.amount
-    old_status = row.status
+    if not row:
+        return f"No se encontró la transacción con ID {id_transaccion}."
 
-    # Actualizar la tabla principal
+
+    account_id = row["account_id"]
+    timestamp = row["timestamp"]
+    amount = row["amount"]
+    old_status = row["status"]
+
     query = """
     UPDATE transaccion
     SET status = %s
@@ -392,7 +395,6 @@ def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
     """
     session.execute(query, (nuevo_estado, id_transaccion))
 
-    # Actualizar la tabla transaccionestimesstap
     query = """
     UPDATE transaccionestimesstap
     SET status = %s
@@ -400,7 +402,7 @@ def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
     """
     session.execute(query, (nuevo_estado, account_id, timestamp, id_transaccion))
 
-    # Actualizar la tabla transacciones_por_amount
+
     query = """
     UPDATE transacciones_por_amount
     SET status = %s
@@ -408,8 +410,6 @@ def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
     """
     session.execute(query, (nuevo_estado, account_id, amount, id_transaccion))
 
-    # Manejar la tabla transacciones_por_status
-    # Paso 1: Eliminar el registro antiguo
     if old_status:
         delete_query = """
         DELETE FROM transacciones_por_status
@@ -417,7 +417,6 @@ def actualizar_estado_transaccion(id_transaccion, nuevo_estado):
         """
         session.execute(delete_query, (account_id, old_status, id_transaccion))
     
-    # Paso 2: Insertar el nuevo registro
     insert_query = """
     INSERT INTO transacciones_por_status (account_id, status, id_transaccion, timestamp, amount, lat, lon)
     VALUES (%s, %s, %s, %s, %s, NULL, NULL)

@@ -2,8 +2,9 @@ from db.Dgraph.dgraph import obtener_cuenta_por_email, obtener_uid_cuenta, regis
 from db.MongoDB.mongo import actualizar_balances_en_mongo, get_mongo_db, insertar_notificacion
 from db.Cassandra.cassandra import crear_tabla_transacciones_amount, crear_tabla_transacciones_status, crear_tabla_transacciones_timestap, insertar_transaccion_amount, insertar_transaccion_status, insertar_transaccion_timestap,actualizar_estado_transaccion,insertar_transaccion
 from uuid import uuid4
+import uuid
 from core.fraude import verificar_geolocalizacion, reportar_fraude_auto,detectar_duplicacion_transacciones,tiempo_entre_transacciones,detectar_gasto_inusual
-
+from datetime import datetime , timedelta
 
 def realizar_transaccion(email_origen):
     print("\n=== Realizar Transacción ===")
@@ -41,11 +42,12 @@ def realizar_transaccion(email_origen):
     success, mensaje = actualizar_balances_en_mongo(id_origen, id_destino, monto)
     if success:
         transaction_id = uuid4()
-
-        insertar_transaccion_timestap(id_origen, id_destino, monto, transaction_id, lat, lon)
-        insertar_transaccion_amount(id_origen, id_destino, monto, transaction_id, lat, lon)
-        insertar_transaccion_status(id_origen, id_destino, monto, transaction_id, lat, lon)
-        insertar_transaccion(id_origen, id_destino, monto, transaction_id, lat, lon)
+        timestamp = datetime.now()
+        insertar_transaccion_timestap(id_origen, id_destino, monto,timestamp, transaction_id, lat, lon)
+        insertar_transaccion_amount(id_origen, id_destino, monto,timestamp, transaction_id, lat, lon)
+        insertar_transaccion_status(id_origen, id_destino, monto,timestamp, transaction_id, lat, lon)
+        insertar_transaccion(id_origen, id_destino, monto,timestamp, transaction_id, lat,lon )
+       
 
         uid_origen = obtener_uid_cuenta(id_origen)
         uid_destino = obtener_uid_cuenta(id_destino)
@@ -58,11 +60,12 @@ def realizar_transaccion(email_origen):
         else:
             print("No se pudo registrar la transacción en Dgraph (UIDs no encontrados).")
 
-        
+        transaction_id = str(transaction_id)
+        transaction_id = uuid.UUID(transaction_id)
         if not verificar_geolocalizacion(email_origen,transaction_id):
             print("No se detectó fraude en la transacción.")
         else:
-            print("Se detectó un posible fraude en la transacción. generado por reporte")
+            print("Se detectó un posible fraude en la transacción. generado por geolocalizacion")
             reportar_fraude_auto(email_origen, "tipo: geolocalizacion", transaction_id)
             actualizar_estado_transaccion(transaction_id, "fraude")
         if not detectar_duplicacion_transacciones(transaction_id):
