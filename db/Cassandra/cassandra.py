@@ -318,7 +318,6 @@ def obtener_todas_las_transacciones():
 
 def mostrar_todas_transacciones(admin_id):
     transacciones = obtener_todas_las_transacciones()
-    print("raw transactions\n" + str(transacciones))
     if not transacciones:
         print("No hay transacciones registradas.")
         return
